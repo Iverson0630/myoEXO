@@ -448,6 +448,7 @@ register_env_with_variants(
     kwargs={
         "model_path": curr_dir + leg_model,
     },
+
 )
 
 #  Full Body Walk with Hip Exo  ==============================
