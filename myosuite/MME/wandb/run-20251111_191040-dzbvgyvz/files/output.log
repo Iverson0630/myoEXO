@@ -1,0 +1,55 @@
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/envs/registration.py:498: UserWarning: [33mWARN: Overriding environment fullBodyWalk-v0 already in registry.[0m
+  logger.warn(f"Overriding environment {new_spec.id} already in registry.")
+[36m    MyoSuite: A contact-rich simulation suite for musculoskeletal motor control
+        Vittorio Caggiano, Huawei Wang, Guillaume Durandau, Massimo Sartori, Vikash Kumar
+        L4DC-2019 | https://sites.google.com/view/myosuite
+    [0m
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/spaces/box.py:127: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+Traceback (most recent call last):
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 405, in <module>
+    ppo = PPO()
+          ^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 82, in __init__
+    self.envs = SyncVectorEnv([make_env() for _ in range(self.cfg.model.num_env)])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/vector/sync_vector_env.py", line 52, in __init__
+    self.envs = [env_fn() for env_fn in env_fns]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/vector/sync_vector_env.py", line 52, in <listcomp>
+    self.envs = [env_fn() for env_fn in env_fns]
+                 ^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 73, in _init
+    return gym.make("fullBodyWalk-v0")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/envs/registration.py", line 640, in make
+    env = env_creator(**_kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/env/fullbodywalk_v0.py", line 60, in __init__
+    self._setup(**kwargs)
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/env/fullbodywalk_v0.py", line 83, in _setup
+    super()._setup(
+  File "/home/jz7785/ZST/myoEXO/myosuite/envs/myo/base_v0.py", line 53, in _setup
+    super()._setup(
+  File "/home/jz7785/ZST/myoEXO/myosuite/envs/env_base.py", line 171, in _setup
+    observation, _reward, done, *_, _info = self.step(np.zeros(self.sim.model.nu))
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/env/fullbodywalk_v0.py", line 167, in step
+    results = super().step(*args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/envs/myo/base_v0.py", line 119, in step
+    return self.forward(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/utils/implement_for.py", line 151, in _lazy_call_fn
+    return self._delazify(self.func_name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/envs/env_base.py", line 310, in forward
+    obs, reward, done, info = self._forward(**kwargs)
+                              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/envs/env_base.py", line 335, in _forward
+    self.rwd_dict = self.get_reward_dict(self.obs_dict)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/env/fullbodywalk_v0.py", line 117, in get_reward_dict
+    vel_reward = self._get_vel_reward()
+                 ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FullBodyWalkEnvV0' object has no attribute '_get_vel_reward'

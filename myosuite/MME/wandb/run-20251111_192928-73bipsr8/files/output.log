@@ -1,0 +1,21 @@
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/envs/registration.py:498: UserWarning: [33mWARN: Overriding environment fullBodyWalk-v0 already in registry.[0m
+  logger.warn(f"Overriding environment {new_spec.id} already in registry.")
+[36m    MyoSuite: A contact-rich simulation suite for musculoskeletal motor control
+        Vittorio Caggiano, Huawei Wang, Guillaume Durandau, Massimo Sartori, Vikash Kumar
+        L4DC-2019 | https://sites.google.com/view/myosuite
+    [0m
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/spaces/box.py:127: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+===============environment info=====================
+human state shape 403
+human action shape 80
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/0.pt
+/home/jz7785/ZST/myoEXO/myosuite/MME/main.py:242: UserWarning: The torch.cuda.*DtypeTensor constructors are no longer recommended. It's best to use methods such as torch.tensor(data, dtype=*, device='cuda') to create tensors. (Triggered internally at /pytorch/torch/csrc/tensor/python_tensor.cpp:78.)
+  a_dist,v = self.model(Tensor(states))
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/utils/passive_env_checker.py:233: DeprecationWarning: `np.bool8` is a deprecated alias for `np.bool_`.  (Deprecated NumPy 1.24)
+  if not isinstance(terminated, (bool, np.bool8)):
+[ 9.3546  9.7755  9.9953  9.3796  9.8697  9.4543  9.4099  9.8768  9.5768
+  9.7424  9.149   9.4466  9.4395  9.5846  9.407   9.3544  9.469   9.3818
+  9.4535  9.7249 10.2041  9.1024  9.9503  9.7896  9.583   9.733   9.2582
+  9.555   9.3208  9.2532  9.4983  9.9128]

@@ -36,7 +36,7 @@ print(f"Control frequency: {1/ctrl_dt:.1f} Hz")
 
 print('human action shape',action.shape[1])
 print('human state shape',obs.shape[1])
-print('info dict',info['final_info'][0].keys())
+#print('info dict',info['final_info'][0].keys())
 print('state dict',info['final_info'][0]['obs_dict'].keys())
 print('qpos_without_xy shape',info['final_info'][0]['obs_dict']['qpos_without_xy'].shape[0])
 print('human torque shape',info['final_info'][0]['obs_dict']['human_torque'].shape[0])

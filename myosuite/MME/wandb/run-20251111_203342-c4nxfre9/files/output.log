@@ -1,0 +1,104 @@
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/envs/registration.py:498: UserWarning: [33mWARN: Overriding environment fullBodyWalk-v0 already in registry.[0m
+  logger.warn(f"Overriding environment {new_spec.id} already in registry.")
+[36m    MyoSuite: A contact-rich simulation suite for musculoskeletal motor control
+        Vittorio Caggiano, Huawei Wang, Guillaume Durandau, Massimo Sartori, Vikash Kumar
+        L4DC-2019 | https://sites.google.com/view/myosuite
+    [0m
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/spaces/box.py:127: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+===============environment info=====================
+human state shape 403
+human action shape 80
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/0.pt
+/home/jz7785/ZST/myoEXO/myosuite/MME/main.py:242: UserWarning: The torch.cuda.*DtypeTensor constructors are no longer recommended. It's best to use methods such as torch.tensor(data, dtype=*, device='cuda') to create tensors. (Triggered internally at /pytorch/torch/csrc/tensor/python_tensor.cpp:78.)
+  a_dist,v = self.model(Tensor(states))
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/utils/passive_env_checker.py:233: DeprecationWarning: `np.bool8` is a deprecated alias for `np.bool_`.  (Deprecated NumPy 1.24)
+  if not isinstance(terminated, (bool, np.bool8)):
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+SIM : 0
+Optimizing sim nn : 10/10
+# 1 === 0h:0m:2s ===
+||Loss Actor               : 0.0000
+||Loss Critic              : 0.0000
+||Noise                    : 1.000
+||Num Transition So far    : 0
+||Num Transition           : 1
+||Num Episode              : 1
+||Avg Return per episode   : 0.000
+||Avg Reward per transition: 0.000
+||Avg Step per episode     : 1.0
+||Max Avg Retun So far     : 0.000 at #1
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/max.pt
+=============================================
+Traceback (most recent call last):
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 418, in <module>
+    ppo.Evaluate()
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 376, in Evaluate
+    "Loss actor human": self.loss_actor_human,
+                       ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'PPO' object has no attribute 'loss_actor_human'

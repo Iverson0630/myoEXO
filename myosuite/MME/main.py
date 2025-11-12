@@ -247,9 +247,6 @@ class PPO(object):
 		
 
 			obs, rewards, done, truncated, info  = self.envs.step(actions)
-			print(rewards)
-			exit()
-			#self.envs.envs[0].mj_render()
 
 			for j in range(self.num_slaves):
 			
@@ -373,23 +370,17 @@ class PPO(object):
 		
 		print('=============================================')
 		wandb.log({ 
-            "Loss actor human": self.loss_actor_human, 
-            "Loss critic human": self.loss_critic_human,  
-            "Loss actor exo": self.loss_actor_exo, 
-            "Loss critic exo": self.loss_critic_exo,  
-			"Loss Muscle": self.loss_muscle,
+            "Loss actor human": self.loss_actor, 
+            "Loss critic human": self.loss_critic,  
 			"Num Transition": self.num_tuple,  
 			"Num Episode": self.num_episode, 
-			"Avg Human Return per episode": self.sum_return_human/self.num_episode,
-			"Avg Human Reward per transition": self.sum_return_human/self.num_tuple,  
-			"Avg Human Effort per episode": self.sum_return_effort/self.num_episode,
-			"Avg Exo Return per episode": self.sum_return_exo/self.num_episode, 
-			"Avg Exo Reward per transition": self.sum_return_exo/self.num_tuple,  
+			"Avg Human Return per episode": self.sum_return/self.num_episode,
+			"Avg Human Reward per transition": self.sum_return/self.num_tuple,  
+			"Avg Human Effort per episode": self.sum_return/self.num_episode,
 			"Avg Step per episode": self.num_tuple/self.num_episode,
-			"Max Avg Retun So far": self.max_return_exo if self.use_exo else self.max_return_human, 
+			"Max Avg Retun So far":  self.max_return, 
 			"Max Avg Return Epoch": self.max_return_epoch,
-			"Max Torque Epoch": self.actions_exo_max}    
-		)  
+		})  
 
 
 

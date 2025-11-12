@@ -5,8 +5,8 @@ class Config:
     class model:
         num_env: int = 32
         use_exo: bool = False
-        motion: str = "walk"
         model_path: str = "../simhive/myo_sim/leg/myolegs.xml"
+        bvh_path : str = 'motion/walk.bvh'
     class train:
         num_epochs: int = 10
         max_iteration: int = 10000

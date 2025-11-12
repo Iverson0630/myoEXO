@@ -10,7 +10,7 @@ from gym.envs.registration import register
 
 
 
-def laod_bvh(env, path):
+def load_bvh(sim, path):
     with open(path) as f:
         mocap = Bvh(f.read())
 
@@ -37,12 +37,12 @@ def laod_bvh(env, path):
 
 
     for f_idx in range(0, mocap.nframes):
-        qpos = env.sim.data.qpos.copy()
+        qpos = sim.data.qpos.copy()
         # 遍历每个 BVH 关节并赋值给 MuJoCo
         for bvh_name, mj_name in mapping.items():
             try:
-                jid = env.sim.model.name2id(mj_name, "joint")
-                addr = env.sim.model.jnt_qposadr[jid]
+                jid = sim.model.name2id(mj_name, "joint")
+                addr = sim.model.jnt_qposadr[jid]
                 channels = mocap.joint_channels(bvh_name)
                 rot_channels = [ch for ch in channels if "rotation" in ch.lower()]
                 angle_deg = [float(mocap.frame_joint_channel(f_idx, bvh_name, ch)) for ch in rot_channels]
@@ -66,11 +66,12 @@ def laod_bvh(env, path):
 
         qpos[0:3] = qpos[0:3] + [ root_x, -root_z, root_y ]
         qpos_list.append(qpos.copy())
-    return qpos_list
+    return qpos_list, mocap.frame_time
 
 def bvh_play(env, path):
+
     for i in range(1000):
-        qpos_list = laod_bvh(env, path)
+        qpos_list,_ = load_bvh(env.sim, path)
       
         for j in range(len(qpos_list)):
             qpos = qpos_list[j]

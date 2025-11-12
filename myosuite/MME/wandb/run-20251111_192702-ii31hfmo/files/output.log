@@ -1,0 +1,8 @@
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/envs/registration.py:498: UserWarning: [33mWARN: Overriding environment fullBodyWalk-v0 already in registry.[0m
+  logger.warn(f"Overriding environment {new_spec.id} already in registry.")
+[36m    MyoSuite: A contact-rich simulation suite for musculoskeletal motor control
+        Vittorio Caggiano, Huawei Wang, Guillaume Durandau, Massimo Sartori, Vikash Kumar
+        L4DC-2019 | https://sites.google.com/view/myosuite
+    [0m
+/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/gym/spaces/box.py:127: UserWarning: [33mWARN: Box bound precision lowered by casting to float32[0m
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
