@@ -408,9 +408,7 @@ if __name__=="__main__":
 	if not os.path.exists(nn_dir):
 	    os.makedirs(nn_dir)
   
-	
-
-	if config.save_dir.checkpoints is not None:
+	if config.save_dir.checkpoints != 'None':
 		ppo.LoadModel(config.save_dir.checkpoints)
 	else:
 		ppo.SaveModel()

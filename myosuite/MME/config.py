@@ -16,7 +16,7 @@ class Config:
         default_clip_ratio:float = 0.2
 
     class save_dir:
-        checkpoints:str 
+        checkpoints:str = 'None'
         nn_dir: str = 'nn/human/walk'
         wandb_project:str = 'MME'
         wandb_dir : str= 'human_walk'
