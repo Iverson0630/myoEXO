@@ -5,12 +5,23 @@ from mujoco import viewer
 from bvh import Bvh
 import gym, myosuite, numpy as np
 
-
+from scipy.spatial.transform import Rotation as R
 from gym.envs.registration import register
 
 
 
 def load_bvh(sim, path):
+    """
+    获取向量化 MyoSuite 环境的观测（obs）数组。
+
+    支持:
+    - SyncVectorEnv（含多个子环境）
+    - 单个 MyoSuite 环境（BaseV0 派生类）
+
+    返回:
+    - obs_array: np.ndarray，形状为 (num_envs, obs_dim)
+    - obs_dicts: 每个子环境的原始观测字典列表（方便分析）
+    """
     with open(path) as f:
         mocap = Bvh(f.read())
 
@@ -28,6 +39,8 @@ def load_bvh(sim, path):
 
     }
     qpos_list = []
+    joint_pos_list = []
+
     root_channels = mocap.joint_channels("Character1_Hips")
     root_trans = [ch for ch in root_channels if "position" in ch.lower()]
     initial_pos = [float(mocap.frame_joint_channel(0, "Character1_Hips", ch)) for ch in root_trans]
@@ -36,7 +49,7 @@ def load_bvh(sim, path):
     initial_pos = np.array(initial_pos) / 100.0
 
 
-    for f_idx in range(0, mocap.nframes):
+    for f_idx in range(1, mocap.nframes):
         qpos = sim.data.qpos.copy()
         # 遍历每个 BVH 关节并赋值给 MuJoCo
         for bvh_name, mj_name in mapping.items():
@@ -58,23 +71,43 @@ def load_bvh(sim, path):
         pos_vals = [float(mocap.frame_joint_channel(f_idx, "Character1_Hips", ch)) for ch in root_trans]
         pos_vals = np.array(pos_vals) / 100.0 - initial_pos
 
+        rot_channels = [ch for ch in root_channels if "rotation" in ch.lower()]
+        rot_deg = [float(mocap.frame_joint_channel(f_idx, "Character1_Hips", ch)) for ch in rot_channels]
+        rot_rad = np.deg2rad(rot_deg)
+
+        # 根据指定旋转顺序生成四元数
+        rot = R.from_euler("ZXY", rot_rad)
+        quat_xyzw = rot.as_quat()  # scipy返回 [x, y, z, w]
+        fix_rot = R.from_euler("x", -90, degrees=True)
+        rot_fixed = fix_rot * rot
+        quat_xyzw = rot_fixed.as_quat()  #
+     
+        # fix_rot = R.from_euler('x', -90, degrees=True)
+        # rot_fixed = fix_rot * R.from_quat(quat_xyzw)
+        # quat_xyzw_fixed = rot_fixed.as_quat()
+        # quat_wxyz_fixed = np.array([quat_xyzw_fixed[3], quat_xyzw_fixed[0],
+        #                             quat_xyzw_fixed[1], quat_xyzw_fixed[2]])
+
         # BVH 单位通常是 cm，MyoSuite 是 m
         root_x, root_y, root_z = pos_vals
      
         #  mujoco x-> left  y->forward   z->updown
         #  bvh x-> left    y-> updown      z-> forward
-
-        qpos[0:3] = qpos[0:3] + [ root_x, -root_z, root_y ]
+    
+        qpos[0:3] = qpos[0:3] + [ root_x, -root_z, root_y-0.05 ]
+        #qpos[3:7] = -quat_xyzw
         qpos_list.append(qpos.copy())
-    return qpos_list, mocap.frame_time
+    return qpos_list, mocap.frame_time, mapping
 
 def bvh_play(env, path):
 
     for i in range(1000):
-        qpos_list,_ = load_bvh(env.sim, path)
+        qpos_list,_ ,_= load_bvh(env.sim, path)
       
         for j in range(len(qpos_list)):
+       
             qpos = qpos_list[j]
+            print('frame', j ,qpos[3:7])
             env.sim.data.qpos[4:] = qpos[4:]
             env.sim.data.qpos[0:3] = qpos[0:3]
             env.sim.forward()

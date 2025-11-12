@@ -29,9 +29,10 @@ class FullBodyWalkEnvV0(BaseV0):
     ]
 
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "joint_rwd": 0.5,
-        "done": -5,
-        "root_rwd": 0.5,
+        "joint_rwd": 0.7,
+        "done": -5.0,
+        "pos_rwd": 0.0,
+        "ori_rwd": 0.3,
     }
 
     def __init__(self, model_path, obsd_model_path=None, seed=None, **kwargs):
@@ -57,7 +58,7 @@ class FullBodyWalkEnvV0(BaseV0):
 
         # load bvh file
         bvh_path = Config().model.bvh_path
-        self.qpos_bvh,self.frame_time = load_bvh(self.sim, bvh_path)
+        self.qpos_bvh,self.frame_time, self.mapping = load_bvh(self.sim, bvh_path)
         self.bvh_start_frame = 0
 
 
@@ -88,7 +89,7 @@ class FullBodyWalkEnvV0(BaseV0):
             obs_keys=obs_keys, weighted_reward_keys=weighted_reward_keys, **kwargs
         )
 
-        self.init_qpos[:] = self.sim.model.key_qpos[0]
+        self.init_qpos[:] =  self.qpos_bvh[0]
         self.init_qvel[:] = 0.0
 
 
@@ -129,17 +130,23 @@ class FullBodyWalkEnvV0(BaseV0):
         self.qpos_ref = self.qpos_bvh[frame_idx]
 
 
-        joint_rwd = self._get_joint_rwd()
+        joint_rwd = self._get_all_joint_rwd()
         root_rwd = self._get_root_rwd()
-
+        pos_rwd = root_rwd[1]
+        ori_rwd = np.mean(root_rwd[3:7])
+        # print('joint reward: ', np.floor(np.array(joint_rwd) * 100) / 100,  np.mean(joint_rwd))
+        # print('root pos reward: ', np.floor(np.array(pos_rwd) * 100) / 100,  np.mean(root_rwd))
+        # print('root ori reward: ', np.floor(np.array(ori_rwd) * 100) / 100,  np.mean(root_rwd))
+        #ee_rwd = self._get
         rwd_dict = collections.OrderedDict(
             (
                 # Optional Keys
                 ("joint_rwd", np.mean(joint_rwd)),
-                ("root_rwd", np.mean(root_rwd)),
+                ("pos_rwd", np.mean(pos_rwd)),
+                ("ori_rwd", np.mean(ori_rwd)),
                 # Must keys
-                ("sparse", root_rwd),
-                ("solved", root_rwd[1] >= 2.0),
+                ("sparse", joint_rwd),
+                ("solved", joint_rwd >= 0.9),
                 ("done", self._get_done()),
             )
         )
@@ -148,13 +155,28 @@ class FullBodyWalkEnvV0(BaseV0):
         )
         return rwd_dict
 
-    def _get_joint_rwd(self):
-        joint = self.sim.data.qpos[4:]
-        return self.exp_of_squared(joint - self.qpos_ref[4:], 10.0)
+    def _get_target_joint_rwd(self):
+        joint = []
+        ref_joint = []
+        for bvh_name, mujoco_name in self.mapping.items():
+            jid = self.sim.model.joint_name2id(mujoco_name)
+            adr = self.sim.model.jnt_qposadr[jid]
+            joint.append(self.sim.data.qpos[adr])
+            ref_joint.append(self.qpos_ref[adr])
+        # print('=======================================')
+        # print('real joint : ', np.floor(np.array(joint) * 100) / 100)
+        # print('refer joint : ', np.floor(np.array(ref_joint) * 100) / 100)
+        return self.exp_of_squared(np.mean(np.array(joint) - np.array(ref_joint))*180/3.14, 10.0)
+    
+    def _get_all_joint_rwd(self):
+        return self.exp_of_squared(np.mean(self.sim.data.qpos[7:] - self.qpos_ref[7:])*180/3.14, 10.0)
      
     def _get_root_rwd(self):    
-        root_pos =  self.sim.data.qpos[0:3]
-        return self.exp_of_squared(root_pos - self.qpos_ref[0:3], 10.0)
+        root_pos =  self.sim.data.qpos[0:7]
+
+        # print('real pos : ', np.floor(np.array(root_pos) * 100) / 100)   
+        # print('refer pos: ', np.floor(np.array(self.qpos_ref[0:7]) * 100) / 100)
+        return self.exp_of_squared((root_pos - self.qpos_ref[0:7])*100, 5.0)
     
     def exp_of_squared(self, val, w):
         return np.exp(-w*val*val)
@@ -183,12 +205,12 @@ class FullBodyWalkEnvV0(BaseV0):
 
     def reset(self, **kwargs):
         self.steps = 0
-        self.bvh_start_frame = np.random.randint(0, len(self.qpos_bvh))
-        
+        self.bvh_start_frame = 0#np.random.randint(0, len(self.qpos_bvh))
+   
         if self.reset_type == "random":
             qpos, qvel = self.get_randomized_initial_state()
         elif self.reset_type == "init":
-            qpos, qvel = self.sim.model.key_qpos[0], self.sim.model.key_qvel[0]
+            qpos, qvel = self.qpos_bvh[0], self.sim.model.key_qvel[0] #reset the pos of bvh
         else:
             qpos, qvel = self.sim.model.key_qpos[0], self.sim.model.key_qvel[0]
         self.robot.sync_sims(self.sim, self.sim_obsd)

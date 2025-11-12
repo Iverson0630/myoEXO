@@ -88,8 +88,14 @@ class PPO(object):
 		self.num_tuple_so_far = 0
 		self.num_episode = 0
 		self.num_tuple = 0
-		self.num_simulation_Hz = 1000 #self.envs.GetSimulationHz()
-		self.num_control_Hz = 100 #self.envs.GetControlHz()
+
+		timestep = self.envs.envs[0].sim.model.opt.timestep
+		frame_skip = self.envs.envs[0].frame_skip
+		sim_freq = 1.0 / timestep
+		ctrl_freq = 1.0 / (timestep * frame_skip)
+
+		self.num_simulation_Hz = sim_freq
+		self.num_control_Hz = ctrl_freq #self.envs.GetControlHz()
 		self.num_simulation_per_control = self.num_simulation_Hz // self.num_control_Hz
 
 		self.gamma = 0.99
@@ -142,7 +148,8 @@ class PPO(object):
 		print('human state shape',self.num_state)
 		print('human action shape',self.num_action)
 
-
+		print('simulation frequence',self.num_simulation_Hz)
+		print('control frequence',self.num_control_Hz)
 	def SaveModel(self):
 		self.model.save(nn_dir+'/current.pt')
 	
@@ -247,6 +254,8 @@ class PPO(object):
 		
 
 			obs, rewards, done, truncated, info  = self.envs.step(actions)
+
+			# self.envs.envs[0].mj_render()
 
 			for j in range(self.num_slaves):
 			

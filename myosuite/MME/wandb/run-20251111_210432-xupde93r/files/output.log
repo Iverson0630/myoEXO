@@ -945,3 +945,384 @@ Optimizing sim nn : 10/10
 ||Max Avg Retun So far     : 67.804 at #55
 save simulation nn nn/human/walk/current.pt
 =============================================
+SIM : 1205
+Optimizing sim nn : 10/10
+# 62 === 0h:1m:57s ===
+||Loss Actor               : -0.1299
+||Loss Critic              : 0.5886
+||Noise                    : 0.988
+||Num Transition So far    : 125534
+||Num Transition           : 1205
+||Num Episode              : 13
+||Avg Return per episode   : 65.441
+||Avg Reward per transition: 0.706
+||Avg Step per episode     : 92.7
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2437
+Optimizing sim nn : 10/10
+# 63 === 0h:1m:59s ===
+||Loss Actor               : -0.1286
+||Loss Critic              : 0.5299
+||Noise                    : 0.987
+||Num Transition So far    : 127971
+||Num Transition           : 2437
+||Num Episode              : 26
+||Avg Return per episode   : 66.326
+||Avg Reward per transition: 0.708
+||Avg Step per episode     : 93.7
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2445
+Optimizing sim nn : 10/10
+# 64 === 0h:2m:1s ===
+||Loss Actor               : -0.1509
+||Loss Critic              : 0.8570
+||Noise                    : 0.987
+||Num Transition So far    : 130416
+||Num Transition           : 2445
+||Num Episode              : 26
+||Avg Return per episode   : 66.570
+||Avg Reward per transition: 0.708
+||Avg Step per episode     : 94.0
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1695
+Optimizing sim nn : 10/10
+# 65 === 0h:2m:2s ===
+||Loss Actor               : -0.1385
+||Loss Critic              : 0.8533
+||Noise                    : 0.987
+||Num Transition So far    : 132111
+||Num Transition           : 1695
+||Num Episode              : 18
+||Avg Return per episode   : 66.339
+||Avg Reward per transition: 0.704
+||Avg Step per episode     : 94.2
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2158
+Optimizing sim nn : 10/10
+# 66 === 0h:2m:4s ===
+||Loss Actor               : -0.1420
+||Loss Critic              : 0.7881
+||Noise                    : 0.987
+||Num Transition So far    : 134269
+||Num Transition           : 2158
+||Num Episode              : 23
+||Avg Return per episode   : 65.992
+||Avg Reward per transition: 0.703
+||Avg Step per episode     : 93.8
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2450
+Optimizing sim nn : 10/10
+# 67 === 0h:2m:6s ===
+||Loss Actor               : -0.1270
+||Loss Critic              : 0.4964
+||Noise                    : 0.987
+||Num Transition So far    : 136719
+||Num Transition           : 2450
+||Num Episode              : 26
+||Avg Return per episode   : 67.006
+||Avg Reward per transition: 0.711
+||Avg Step per episode     : 94.2
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1683
+Optimizing sim nn : 10/10
+# 68 === 0h:2m:8s ===
+||Loss Actor               : -0.1302
+||Loss Critic              : 0.4663
+||Noise                    : 0.986
+||Num Transition So far    : 138402
+||Num Transition           : 1683
+||Num Episode              : 18
+||Avg Return per episode   : 66.739
+||Avg Reward per transition: 0.714
+||Avg Step per episode     : 93.5
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1788
+Optimizing sim nn : 10/10
+# 69 === 0h:2m:10s ===
+||Loss Actor               : -0.1311
+||Loss Critic              : 0.4626
+||Noise                    : 0.986
+||Num Transition So far    : 140190
+||Num Transition           : 1788
+||Num Episode              : 19
+||Avg Return per episode   : 66.254
+||Avg Reward per transition: 0.704
+||Avg Step per episode     : 94.1
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2578
+Optimizing sim nn : 10/10
+# 70 === 0h:2m:12s ===
+||Loss Actor               : -0.1390
+||Loss Critic              : 0.5510
+||Noise                    : 0.986
+||Num Transition So far    : 142768
+||Num Transition           : 2578
+||Num Episode              : 27
+||Avg Return per episode   : 67.584
+||Avg Reward per transition: 0.708
+||Avg Step per episode     : 95.5
+||Max Avg Retun So far     : 67.804 at #55
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1626
+Optimizing sim nn : 10/10
+# 71 === 0h:2m:14s ===
+||Loss Actor               : -0.1358
+||Loss Critic              : 0.4876
+||Noise                    : 0.986
+||Num Transition So far    : 144394
+||Num Transition           : 1626
+||Num Episode              : 17
+||Avg Return per episode   : 68.211
+||Avg Reward per transition: 0.713
+||Avg Step per episode     : 95.6
+||Max Avg Retun So far     : 68.211 at #71
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/max.pt
+=============================================
+SIM : 1979
+Optimizing sim nn : 10/10
+# 72 === 0h:2m:16s ===
+||Loss Actor               : -0.1374
+||Loss Critic              : 0.4656
+||Noise                    : 0.986
+||Num Transition So far    : 146373
+||Num Transition           : 1979
+||Num Episode              : 21
+||Avg Return per episode   : 66.872
+||Avg Reward per transition: 0.710
+||Avg Step per episode     : 94.2
+||Max Avg Retun So far     : 68.211 at #71
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2535
+Optimizing sim nn : 10/10
+# 73 === 0h:2m:18s ===
+||Loss Actor               : -0.1243
+||Loss Critic              : 0.4812
+||Noise                    : 0.985
+||Num Transition So far    : 148908
+||Num Transition           : 2535
+||Num Episode              : 27
+||Avg Return per episode   : 66.511
+||Avg Reward per transition: 0.708
+||Avg Step per episode     : 93.9
+||Max Avg Retun So far     : 68.211 at #71
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1900
+Optimizing sim nn : 10/10
+# 74 === 0h:2m:20s ===
+||Loss Actor               : -0.1384
+||Loss Critic              : 0.5246
+||Noise                    : 0.985
+||Num Transition So far    : 150808
+||Num Transition           : 1900
+||Num Episode              : 20
+||Avg Return per episode   : 67.066
+||Avg Reward per transition: 0.706
+||Avg Step per episode     : 95.0
+||Max Avg Retun So far     : 68.211 at #71
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1645
+Optimizing sim nn : 10/10
+# 75 === 0h:2m:21s ===
+||Loss Actor               : -0.1186
+||Loss Critic              : 0.5898
+||Noise                    : 0.985
+||Num Transition So far    : 152453
+||Num Transition           : 1645
+||Num Episode              : 17
+||Avg Return per episode   : 69.021
+||Avg Reward per transition: 0.713
+||Avg Step per episode     : 96.8
+||Max Avg Retun So far     : 69.021 at #75
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/max.pt
+=============================================
+SIM : 2487
+Optimizing sim nn : 10/10
+# 76 === 0h:2m:23s ===
+||Loss Actor               : -0.1400
+||Loss Critic              : 0.3955
+||Noise                    : 0.985
+||Num Transition So far    : 154940
+||Num Transition           : 2487
+||Num Episode              : 26
+||Avg Return per episode   : 67.410
+||Avg Reward per transition: 0.705
+||Avg Step per episode     : 95.7
+||Max Avg Retun So far     : 69.021 at #75
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1951
+Optimizing sim nn : 10/10
+# 77 === 0h:2m:25s ===
+||Loss Actor               : -0.1404
+||Loss Critic              : 0.3825
+||Noise                    : 0.985
+||Num Transition So far    : 156891
+||Num Transition           : 1951
+||Num Episode              : 20
+||Avg Return per episode   : 68.883
+||Avg Reward per transition: 0.706
+||Avg Step per episode     : 97.5
+||Max Avg Retun So far     : 69.021 at #75
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1729
+Optimizing sim nn : 10/10
+# 78 === 0h:2m:27s ===
+||Loss Actor               : -0.1375
+||Loss Critic              : 0.5802
+||Noise                    : 0.984
+||Num Transition So far    : 158620
+||Num Transition           : 1729
+||Num Episode              : 18
+||Avg Return per episode   : 68.293
+||Avg Reward per transition: 0.711
+||Avg Step per episode     : 96.1
+||Max Avg Retun So far     : 69.021 at #75
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2567
+Optimizing sim nn : 10/10
+# 79 === 0h:2m:29s ===
+||Loss Actor               : -0.1411
+||Loss Critic              : 0.7280
+||Noise                    : 0.983
+||Num Transition So far    : 161187
+||Num Transition           : 2567
+||Num Episode              : 27
+||Avg Return per episode   : 67.382
+||Avg Reward per transition: 0.709
+||Avg Step per episode     : 95.1
+||Max Avg Retun So far     : 69.021 at #75
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1946
+Optimizing sim nn : 10/10
+# 80 === 0h:2m:31s ===
+||Loss Actor               : -0.1194
+||Loss Critic              : 0.6678
+||Noise                    : 0.983
+||Num Transition So far    : 163133
+||Num Transition           : 1946
+||Num Episode              : 20
+||Avg Return per episode   : 69.055
+||Avg Reward per transition: 0.710
+||Avg Step per episode     : 97.3
+||Max Avg Retun So far     : 69.055 at #80
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/max.pt
+=============================================
+SIM : 1722
+Optimizing sim nn : 10/10
+# 81 === 0h:2m:33s ===
+||Loss Actor               : -0.1431
+||Loss Critic              : 0.4313
+||Noise                    : 0.983
+||Num Transition So far    : 164855
+||Num Transition           : 1722
+||Num Episode              : 18
+||Avg Return per episode   : 67.418
+||Avg Reward per transition: 0.705
+||Avg Step per episode     : 95.7
+||Max Avg Retun So far     : 69.055 at #80
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 2504
+Optimizing sim nn : 10/10
+# 82 === 0h:2m:35s ===
+||Loss Actor               : -0.1324
+||Loss Critic              : 0.5320
+||Noise                    : 0.983
+||Num Transition So far    : 167359
+||Num Transition           : 2504
+||Num Episode              : 26
+||Avg Return per episode   : 68.360
+||Avg Reward per transition: 0.710
+||Avg Step per episode     : 96.3
+||Max Avg Retun So far     : 69.055 at #80
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1809
+Optimizing sim nn : 10/10
+# 83 === 0h:2m:37s ===
+||Loss Actor               : -0.1233
+||Loss Critic              : 0.4425
+||Noise                    : 0.983
+||Num Transition So far    : 169168
+||Num Transition           : 1809
+||Num Episode              : 19
+||Avg Return per episode   : 67.495
+||Avg Reward per transition: 0.709
+||Avg Step per episode     : 95.2
+||Max Avg Retun So far     : 69.055 at #80
+save simulation nn nn/human/walk/current.pt
+=============================================
+SIM : 1797
+Optimizing sim nn : 10/10
+# 84 === 0h:2m:38s ===
+||Loss Actor               : -0.1398
+||Loss Critic              : 0.6213
+||Noise                    : 0.982
+||Num Transition So far    : 170965
+||Num Transition           : 1797
+||Num Episode              : 18
+||Avg Return per episode   : 70.878
+||Avg Reward per transition: 0.710
+||Avg Step per episode     : 99.8
+||Max Avg Retun So far     : 70.878 at #84
+save simulation nn nn/human/walk/current.pt
+save simulation nn nn/human/walk/max.pt
+=============================================
+SIM : 2553
+Optimizing sim nn : 10/10
+# 85 === 0h:2m:40s ===
+||Loss Actor               : -0.1254
+||Loss Critic              : 0.6454
+||Noise                    : 0.982
+||Num Transition So far    : 173518
+||Num Transition           : 2553
+||Num Episode              : 26
+||Avg Return per episode   : 69.507
+||Avg Reward per transition: 0.708
+||Avg Step per episode     : 98.2
+||Max Avg Retun So far     : 70.878 at #84
+save simulation nn nn/human/walk/current.pt
+Traceback (most recent call last):
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 409, in <module>
+    ppo.Evaluate()
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 369, in Evaluate
+    self.SaveModel()
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/main.py", line 147, in SaveModel
+    self.model.save(nn_dir+'/current.pt')
+  File "/home/jz7785/ZST/myoEXO/myosuite/MME/Model.py", line 139, in save
+    torch.save(self.state_dict(),path)
+  File "/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/torch/serialization.py", line 966, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/torch/serialization.py", line 828, in _open_zipfile_writer
+    return container(name_or_buffer)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jz7785/miniconda3/envs/myosuite/lib/python3.11/site-packages/torch/serialization.py", line 792, in __init__
+    torch._C.PyTorchFileWriter(
+RuntimeError: Parent directory nn/human/walk does not exist.

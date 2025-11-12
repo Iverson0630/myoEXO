@@ -48,11 +48,17 @@ class Render():
 		self.num_action = action.shape[0]
 
 
+		timestep = self.env.sim.model.opt.timestep
+		frame_skip = self.env.frame_skip
+		sim_freq = 1.0 / timestep
+		ctrl_freq = 1.0 / (timestep * frame_skip)
 
 
 		print('===============environment info=====================')
 		print('human state shape',self.num_state)
 		print('human action shape',self.num_action)
+		print('simulation frequence',sim_freq)
+		print('control frequence',ctrl_freq)
 		self.model = SimulationHumanNN(self.num_state,self.num_action)
 
 	def LoadModel(self,path):
@@ -62,12 +68,15 @@ class Render():
 			self.model.cuda()
 	
 	def forward(self,max_step=10000):
+		self.env.reset()
 		for i in range(max_step):
 			states = self.get_state()
 			a_dist,v = self.model(Tensor(states))
 			actions = a_dist.sample().cpu().detach().numpy()
 
 			obs, rewards, done, truncated, info  = self.env.step(actions[0])
+
+			time.sleep(0.02)
 			if done:
 				self.env.reset()
 			self.env.mj_render()
