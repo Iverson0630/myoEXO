@@ -80,27 +80,13 @@ def bvh_play(env, path):
             env.mj_render()
             time.sleep(0.1)
 
-def log_muscle_joint():
-    
-    muscle_names = [env.sim.model.id2name(i, "actuator") for i in range(env.sim.model.nu)]
 
-
-    forces = env.sim.data.actuator_force
-    activations = env.sim.data.act
-
-    for name, a, f in zip(muscle_names, activations, forces):
-        print(f"{name:20s} | activation={a:.3f} | force={f:.1f}")
-
-    for i in range(env.sim.model.njnt):
-        name = env.sim.model.id2name(i, "joint")
-        addr = env.sim.model.jnt_qposadr[i]
-        print(f"{i:02d}  {name:20s}  qpos index: {addr}")
 
 if __name__ == "__main__":
 
     register(
         id="fullBodyWalk-v0",
-        entry_point="myosuite.envs.myo.myobase.fullbodywalk_v0:FullBodyWalkEnvV0",
+        entry_point="env.fullbodywalk_v0:FullBodyWalkEnvV0",
         max_episode_steps=200,
         kwargs={
             "model_path":  '../simhive/myo_sim/leg/myolegs.xml', 

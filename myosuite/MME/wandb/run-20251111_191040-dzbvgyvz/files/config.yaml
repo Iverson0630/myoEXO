@@ -1,0 +1,52 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            00bhxtpv5k98mfolvst2c8pm5hacn0om:
+                codePath: myosuite/MME/main.py
+                codePathLocal: main.py
+                cpu_count: 20
+                cpu_count_logical: 20
+                cudaVersion: "12.9"
+                disk:
+                    /:
+                        total: "495149572096"
+                        used: "207007383552"
+                email: zst806038347@gmail.com
+                executable: /home/jz7785/miniconda3/envs/myosuite/bin/python
+                git:
+                    commit: fdb79f74bf916a51f8c2a15d66c0b1b8c3056a0c
+                    remote: https://github.com/Iverson0630/myoEXO.git
+                gpu: NVIDIA GeForce RTX 5080
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Blackwell
+                      cudaCores: 10752
+                      memoryTotal: "17094934528"
+                      name: NVIDIA GeForce RTX 5080
+                      uuid: GPU-644ee918-1931-600d-7f3b-08ae905634c0
+                host: ENG-HS5894-UBUNTU
+                memory:
+                    total: "16450408448"
+                os: Linux-6.14.0-24-generic-x86_64-with-glibc2.39
+                program: /home/jz7785/ZST/myoEXO/myosuite/MME/main.py
+                python: CPython 3.11.0
+                root: /home/jz7785/ZST/myoEXO/myosuite/MME
+                startedAt: "2025-11-12T00:10:40.148425Z"
+                writerId: 00bhxtpv5k98mfolvst2c8pm5hacn0om
+        m: []
+        python_version: 3.11.0
+        t:
+            "1":
+                - 1
+                - 41
+            "2":
+                - 1
+                - 41
+            "3":
+                - 13
+                - 16
+            "4": 3.11.0
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": linux-x86_64
