@@ -1,0 +1,18 @@
+click
+sk-video
+gymnasium==0.29.1
+termcolor
+flatten_dict
+h5py
+numpy
+mujoco==3.3.0
+dm-control==1.0.28
+Pillow
+pink-noise-rl
+packaging
+gitpython
+
+[examples]
+
+[examples:python_version > "3.9"]
+mink[examples]

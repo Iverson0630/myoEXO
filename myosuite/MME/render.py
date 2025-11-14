@@ -35,11 +35,11 @@ use_cuda = torch.cuda.is_available()
 
 class Render():
 	def __init__(self):
-		np.random.seed(seed = int(time.time()))
+		#np.random.seed(seed = int(time.time()))
 	
 		self.cfg = Config()
 		register_mme(self.cfg.model.model_path)
-		self.env = gym.make('fullBodyWalk-v0')  
+		self.env = gym.make(self.cfg.model.env)  
 	
 		self.initial_obs = self.env.reset()
 		action = self.env.action_space.sample()
@@ -72,11 +72,12 @@ class Render():
 		for i in range(max_step):
 			states = self.get_state()
 			a_dist,v = self.model(Tensor(states))
-			actions = a_dist.sample().cpu().detach().numpy()
-
-			obs, rewards, done, truncated, info  = self.env.step(actions[0])
-
-			time.sleep(0.02)
+		
+			actions = a_dist.loc.cpu().detach().numpy().squeeze()
+	
+			obs, rewards, done, truncated, info  = self.env.step(actions)
+		
+			time.sleep(0.1)
 			if done:
 				self.env.reset()
 			self.env.mj_render()

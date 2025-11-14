@@ -12,7 +12,7 @@ def key_callback(key):
         print("⏸️ 暂停" if paused else "▶️ 继续")
 
 def load_muscle_file():
-    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/leg/myolegs.xml")
+    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/body/myofullbodyarms.xml")
     print("nq:", model.nq)
     print("joint names:", [model.joint(i).name for i in range(model.njnt)])
 
@@ -39,6 +39,7 @@ def load_muscle_file():
 
                 # 只转当前这个关节
                 if name =='root':
+                    continue
                     for idx in range(7):
                         for t in np.linspace(0, 2*np.pi, 100):
                             if not v.is_running():

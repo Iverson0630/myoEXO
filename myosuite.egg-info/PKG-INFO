@@ -1,0 +1,33 @@
+Metadata-Version: 2.4
+Name: myosuite
+Version: 2.11.6
+Summary: Musculoskeletal environments simulated in MuJoCo
+Author-email: Vikash Kumar <vikashplus@gmail.com>, Vittorio Caggiano <caggiano@gmail.com>
+License: Apache 2.0
+Project-URL: Homepage, https://sites.google.com/view/myosuite
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: click
+Requires-Dist: sk-video
+Requires-Dist: gymnasium==0.29.1
+Requires-Dist: termcolor
+Requires-Dist: flatten_dict
+Requires-Dist: h5py
+Requires-Dist: numpy
+Requires-Dist: mujoco==3.3.0
+Requires-Dist: dm-control==1.0.28
+Requires-Dist: Pillow
+Requires-Dist: pink-noise-rl
+Requires-Dist: packaging
+Requires-Dist: gitpython
+Provides-Extra: examples
+Requires-Dist: mink[examples]; python_version > "3.9" and extra == "examples"
+Dynamic: license-file
+
+# myoEXO
+ 

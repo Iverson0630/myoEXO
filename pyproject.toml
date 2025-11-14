@@ -1,6 +1,6 @@
 
 [project]
-name = "MyoSuite"
+name = "myosuite"
 dynamic = ["version"]  # Enable dynamic version
 description = "Musculoskeletal environments simulated in MuJoCo"
 readme = "README.md"

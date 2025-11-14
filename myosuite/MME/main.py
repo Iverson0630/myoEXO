@@ -68,10 +68,7 @@ class ReplayBuffer(object):
 	def Clear(self):
 		self.buffer.clear()
 
-def make_env():
-    def _init():
-        return gym.make("fullBodyWalk-v0")
-    return _init
+
 
 class PPO(object):
 	def __init__(self):
@@ -79,7 +76,7 @@ class PPO(object):
 	
 		self.cfg = Config()
 		register_mme(self.cfg.model.model_path)
-		self.envs = SyncVectorEnv([make_env() for _ in range(self.cfg.model.num_env)])  
+		self.envs = SyncVectorEnv([self.make_env() for _ in range(self.cfg.model.num_env)])  
 	
 
 
@@ -145,11 +142,16 @@ class PPO(object):
 		for j in range(self.num_slaves):
 			self.episodes[j] = EpisodeBuffer()
 		print('===============environment info=====================')
+		print('env name',self.cfg.model.env)
 		print('human state shape',self.num_state)
 		print('human action shape',self.num_action)
 
 		print('simulation frequence',self.num_simulation_Hz)
 		print('control frequence',self.num_control_Hz)
+	def make_env(self):
+		def _init():
+			return gym.make(self.cfg.model.env)
+		return _init
 	def SaveModel(self):
 		self.model.save(nn_dir+'/current.pt')
 	
@@ -365,7 +367,7 @@ class PPO(object):
 		print('# {} === {}h:{}m:{}s ==='.format(self.num_evaluation,h,m,s))
 		print('||Loss Actor               : {:.4f}'.format(self.loss_actor))
 		print('||Loss Critic              : {:.4f}'.format(self.loss_critic))
-		print('||Noise                    : {:.3f}'.format(self.model.log_std.exp().mean()))		
+		print('||Noise                    : {:.3f}'.format(self.model.log_std_.exp().mean()))		
 		print('||Num Transition So far    : {}'.format(self.num_tuple_so_far))
 		print('||Num Transition           : {}'.format(self.num_tuple))
 		print('||Num Episode              : {}'.format(self.num_episode))

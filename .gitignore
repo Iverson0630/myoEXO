@@ -1,6 +1,9 @@
 *.so
 *.a
+**/__pycache__/
+**/wandb/
 
 myosuite/MME/nn/
 myosuite/MME/__pycache__/
 myosuite/MME/wandb/ 
+myosuite/agents/baselines_DEPRL/myofullbody/

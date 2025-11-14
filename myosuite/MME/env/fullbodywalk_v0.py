@@ -29,9 +29,9 @@ class FullBodyWalkEnvV0(BaseV0):
     ]
 
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "joint_rwd": 0.7,
-        "done": -5.0,
-        "pos_rwd": 0.0,
+        "joint_rwd": 0.5,
+        "done": 0,
+        "pos_rwd": 0.2,
         "ori_rwd": 0.3,
     }
 
@@ -68,7 +68,7 @@ class FullBodyWalkEnvV0(BaseV0):
         self,
         obs_keys: list = DEFAULT_OBS_KEYS,
         weighted_reward_keys: dict = DEFAULT_RWD_KEYS_AND_WEIGHTS,
-        min_height=0.8,
+        min_height= 0.9,
         max_rot=0.8,
         hip_period=100,
         reset_type="init",
@@ -123,19 +123,24 @@ class FullBodyWalkEnvV0(BaseV0):
      
 
     def get_reward_dict(self, obs_dict):
-
+        self.preprocess_bvh_vel()
         t = self.sim.data.time / self.frame_time
         frame0 = int(np.floor(t)) % len(self.qpos_bvh)
         frame_idx = (self.bvh_start_frame + frame0) % len(self.qpos_bvh)
         self.qpos_ref = self.qpos_bvh[frame_idx]
+        self.qvel_ref = self.qvel_bvh[frame_idx]
 
-
-        joint_rwd = self._get_all_joint_rwd()
+        joint_pos_rwd = self._get_all_joint_rwd()
+        joint_vel_rwd = self._get_all_joint_vel_rwd()
+        joint_rwd = (joint_pos_rwd+joint_vel_rwd)/2
         root_rwd = self._get_root_rwd()
-        pos_rwd = root_rwd[1]
-        ori_rwd = np.mean(root_rwd[3:7])
-        # print('joint reward: ', np.floor(np.array(joint_rwd) * 100) / 100,  np.mean(joint_rwd))
-        # print('root pos reward: ', np.floor(np.array(pos_rwd) * 100) / 100,  np.mean(root_rwd))
+        vel_rwd = self._get_pos_rwd()
+        pos_rwd = root_rwd[0:2]
+        ori_rwd = root_rwd[3:7]
+        # print("===============================")
+        # print('joint pos reward: ', np.floor(np.array(joint_pos_rwd) * 100) / 100,  np.mean(joint_pos_rwd))
+        # print('joint vel reward: ', np.floor(np.array(joint_vel_rwd) * 100) / 100,  np.mean(joint_vel_rwd))
+        # print('root pos reward: ', np.floor(np.array(pos_rwd) * 100) / 100,  np.mean(pos_rwd))
         # print('root ori reward: ', np.floor(np.array(ori_rwd) * 100) / 100,  np.mean(root_rwd))
         #ee_rwd = self._get
         rwd_dict = collections.OrderedDict(
@@ -166,20 +171,38 @@ class FullBodyWalkEnvV0(BaseV0):
         # print('=======================================')
         # print('real joint : ', np.floor(np.array(joint) * 100) / 100)
         # print('refer joint : ', np.floor(np.array(ref_joint) * 100) / 100)
-        return self.exp_of_squared(np.mean(np.array(joint) - np.array(ref_joint))*180/3.14, 10.0)
+        return self.exp_of_squared(np.mean(np.array(joint) - np.array(ref_joint))*180/np.pi, 10.0)
     
     def _get_all_joint_rwd(self):
-        return self.exp_of_squared(np.mean(self.sim.data.qpos[7:] - self.qpos_ref[7:])*180/3.14, 10.0)
-     
+        # print('=======================================')
+        # print('real joint : ', np.floor(np.array(self.sim.data.qpos[7:]) * 100) / 100)
+        # print('refer joint : ', np.floor(np.array(self.qpos_ref[7:]) * 100) / 100)
+
+        diff = (self.sim.data.qpos[7:] - self.qpos_ref[7:]) * 180 / np.pi
+        return self.exp_of_squared(np.mean(diff),0.1)
+    
+    def _get_all_joint_vel_rwd(self):
+        vdiff = (self.sim.data.qvel[6:] - self.qvel_ref[7:]) * 180 / np.pi
+        return  self.exp_of_squared(np.mean(vdiff),1.0)
     def _get_root_rwd(self):    
         root_pos =  self.sim.data.qpos[0:7]
 
         # print('real pos : ', np.floor(np.array(root_pos) * 100) / 100)   
         # print('refer pos: ', np.floor(np.array(self.qpos_ref[0:7]) * 100) / 100)
-        return self.exp_of_squared((root_pos - self.qpos_ref[0:7])*100, 5.0)
+        return self.exp_of_squared((root_pos - self.qpos_ref[0:7])*100, 0.5)
     
+    def _get_pos_rwd(self):
+        # 获取 pelvis（或 root）的线速度
+        root_vel = self.sim.data.qvel[0:3]  # root 的线速度 [vx, vy, vz]
+        vx = root_vel[1]
+
+        # 奖励接近期望速度（高斯形式）
+        return np.exp(-2.0 * (vx - 0.8)**2)
+
+
     def exp_of_squared(self, val, w):
         return np.exp(-w*val*val)
+    
     def get_randomized_initial_state(self):
         # randomly start with flexed left or right knee
         if self.np_random.uniform() < 0.5:
@@ -205,12 +228,14 @@ class FullBodyWalkEnvV0(BaseV0):
 
     def reset(self, **kwargs):
         self.steps = 0
-        self.bvh_start_frame = 0#np.random.randint(0, len(self.qpos_bvh))
+        self.bvh_start_frame = 0# np.random.randint(0, len(self.qpos_bvh))
    
         if self.reset_type == "random":
             qpos, qvel = self.get_randomized_initial_state()
         elif self.reset_type == "init":
+        
             qpos, qvel = self.qpos_bvh[0], self.sim.model.key_qvel[0] #reset the pos of bvh
+
         else:
             qpos, qvel = self.sim.model.key_qpos[0], self.sim.model.key_qvel[0]
         self.robot.sync_sims(self.sim, self.sim_obsd)
@@ -252,6 +277,19 @@ class FullBodyWalkEnvV0(BaseV0):
                 self.sim.data.body_xpos[foot_id_r][2],
             ]
         )
+    def preprocess_bvh_vel(self):
+        self.qpos_bvh =  np.array(self.qpos_bvh)  # shape [T, nq]
+        T, nq = self.qpos_bvh.shape
+        
+        qvel = np.zeros_like(self.qpos_bvh)
+
+        fps = 1.0 / self.frame_time
+
+        # 一阶差分计算速度
+        qvel[1:] = (self.qpos_bvh[1:] - self.qpos_bvh[:-1]) * fps
+        qvel[0] = qvel[1]
+
+        self.qvel_bvh = qvel
 
     def _get_feet_relative_position(self):
         """
