@@ -43,8 +43,8 @@ class Render():
 	
 		self.initial_obs = self.env.reset()
 		action = self.env.action_space.sample()
-	
-		self.num_state = self.initial_obs[0].shape[0]
+
+		self.num_state = self.initial_obs.shape[0]
 		self.num_action = action.shape[0]
 
 
@@ -55,6 +55,7 @@ class Render():
 
 
 		print('===============environment info=====================')
+		print('env name',self.cfg.model.env)
 		print('human state shape',self.num_state)
 		print('human action shape',self.num_action)
 		print('simulation frequence',sim_freq)
@@ -75,7 +76,7 @@ class Render():
 		
 			actions = a_dist.loc.cpu().detach().numpy().squeeze()
 	
-			obs, rewards, done, truncated, info  = self.env.step(actions)
+			obs, rewards, done, info  = self.env.step(actions)
 		
 			time.sleep(0.1)
 			if done:

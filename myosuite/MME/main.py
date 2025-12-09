@@ -19,8 +19,6 @@ import torchvision.transforms as T
 import numpy as np
 from Model import *
 
-import gym
-import  myosuite
 import time
 
 from mujoco import viewer
@@ -28,6 +26,8 @@ from register_env import register_mme
 from gym.vector import SyncVectorEnv
 from config import Config
 import wandb  
+import gymnasium as gym
+import myosuite
 
 use_cuda = torch.cuda.is_available()
 FloatTensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -80,7 +80,6 @@ class PPO(object):
 	
 
 
-
 		self.num_evaluation = 0
 		self.num_tuple_so_far = 0
 		self.num_episode = 0
@@ -113,8 +112,8 @@ class PPO(object):
 		self.initial_obs = self.envs.reset()
 		action = self.envs.action_space.sample()
 
-		self.num_state = self.initial_obs[0].shape[1]
-		self.num_action = action.shape[1]
+		self.num_state = self.initial_obs[0].shape[0]
+		self.num_action = action[0].shape[0]
 		self.model = SimulationHumanNN(self.num_state,self.num_action)
 
 		if use_cuda:
@@ -152,6 +151,7 @@ class PPO(object):
 		def _init():
 			return gym.make(self.cfg.model.env)
 		return _init
+	
 	def SaveModel(self):
 		self.model.save(nn_dir+'/current.pt')
 	
@@ -255,7 +255,7 @@ class PPO(object):
 			values = v.cpu().detach().numpy().reshape(-1)
 		
 
-			obs, rewards, done, truncated, info  = self.envs.step(actions)
+			obs, rewards, done, info  = self.envs.step(actions)
 
 			# self.envs.envs[0].mj_render()
 
@@ -367,7 +367,7 @@ class PPO(object):
 		print('# {} === {}h:{}m:{}s ==='.format(self.num_evaluation,h,m,s))
 		print('||Loss Actor               : {:.4f}'.format(self.loss_actor))
 		print('||Loss Critic              : {:.4f}'.format(self.loss_critic))
-		print('||Noise                    : {:.3f}'.format(self.model.log_std_.exp().mean()))		
+		print('||Noise                    : {:.3f}'.format(self.model.log_std.exp().mean()))		
 		print('||Num Transition So far    : {}'.format(self.num_tuple_so_far))
 		print('||Num Transition           : {}'.format(self.num_tuple))
 		print('||Num Episode              : {}'.format(self.num_episode))
@@ -399,11 +399,11 @@ import argparse
 import os
 if __name__=="__main__":
 	config = Config()
-	wandb.init(
-		project=config.save_dir.wandb_project,   
-		name= config.save_dir.wandb_dir,  
-		config=Config()  
-    )  
+	# wandb.init(
+	# 	project=config.save_dir.wandb_project,   
+	# 	name= config.save_dir.wandb_dir,  
+	# 	config=Config()  
+    # )  
 	ppo = PPO()
 
 	nn_dir =config.save_dir.nn_dir

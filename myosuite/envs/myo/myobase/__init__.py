@@ -440,27 +440,6 @@ register_env_with_variants(
     },
 )
 
-# Full Body Walk without Exo ==============================
-register_env_with_variants(
-    id="fullBodyWalk-v0",
-    entry_point="myosuite.envs.myo.myobase.fullbodywalk_v0:FullBodyWalkEnvV0",
-    max_episode_steps=1000,
-    kwargs={
-        "model_path": curr_dir + leg_model,
-    },
-
-)
-
-#  Full Body Walk with Hip Exo  ==============================
-register_env_with_variants(
-    id="fullBodyWalkHipExo-v0",
-    entry_point="myosuite.envs.myo.myoEmyobaseo.fullbodywalk_v0:FullBodyWalkHipExoEnvV0",
-    max_episode_steps=200,
-    kwargs={
-        "model_path": curr_dir + leg_model,
-    },
-)
-
 
 # Gait Torso Walking ==============================
 register_env_with_variants(

@@ -9,6 +9,7 @@ import numpy as np
 
 from myosuite.envs.myo.base_v0 import BaseV0
 from myosuite.utils import gym
+import gym
 from myosuite.utils.quat_math import quat2mat
 from bvh_motion import load_bvh
 from config import Config

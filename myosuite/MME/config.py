@@ -10,7 +10,7 @@ class Config:
         env : str = 'fullBodyWalk-v0' #myoLegWalk
     class train:
         num_epochs: int = 50
-        max_iteration: int = 10000
+        max_iteration: int = 20000
         buffer_size:int = 2048
         batch_size:int = 128
         default_learning_rate:float = 2E-4
@@ -18,6 +18,6 @@ class Config:
 
     class save_dir:
         checkpoints:str = 'None'
-        nn_dir: str = 'nn/human/walk'
+        nn_dir: str = 'nn/human/myolegwalk'
         wandb_project:str = 'MME'
-        wandb_dir : str= 'human_walk'
+        wandb_dir : str= 'myolegwalk'

@@ -96,7 +96,7 @@ class SimulationHumanNN(nn.Module):
 		self.p_fc1 = nn.Linear(num_states,num_h1)
 		self.p_fc2 = nn.Linear(num_h1,num_h2)
 		self.p_fc3 = nn.Linear(num_h2,num_actions)
-		self.log_std = nn.Parameter(torch.ones(num_actions)*-1.0) # exoloration noise
+		self.log_std = nn.Parameter(torch.zeros(num_actions)) # exoloration noise
 
 		self.v_fc1 = nn.Linear(num_states,num_h1)
 		self.v_fc2 = nn.Linear(num_h1,num_h2)
@@ -122,9 +122,9 @@ class SimulationHumanNN(nn.Module):
 		p_out = F.relu(self.p_fc1(x))
 		p_out = F.relu(self.p_fc2(p_out))
 		p_out = self.p_fc3(p_out)
-		mu = torch.sigmoid(p_out)  # 保证在 [0,1]
-		self.log_std_ = torch.clamp(self.log_std, min=-10, max=-1)
-		p_out = MultiVariateNormal(mu,self.log_std_.exp())
+		#mu = torch.sigmoid(p_out)  # 保证在 [0,1]
+		#self.log_std_ = torch.clamp(self.log_std, min=-5, max=-1)
+		p_out = MultiVariateNormal(p_out,self.log_std.exp())
 
 		v_out = F.relu(self.v_fc1(x))
 		v_out = F.relu(self.v_fc2(v_out))
