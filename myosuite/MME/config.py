@@ -5,7 +5,7 @@ class Config:
     class model:
         num_env: int = 32
         use_exo: bool = False
-        model_path: str = "../simhive/myo_sim/leg/myolegs.xml"
+        model_path: str = "../simhive/myo_sim/body/myofullbodyarms_muscle_A.xml"
         bvh_path : str = 'motion/walk.bvh'
         env : str = 'fullBodyWalk-v0' #myoLegWalk
     class train:

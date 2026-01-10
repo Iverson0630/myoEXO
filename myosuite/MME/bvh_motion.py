@@ -1,15 +1,12 @@
-from myosuite.utils import gym
+
 import time
 import mujoco
 from mujoco import viewer
 from bvh import Bvh
-import gym, myosuite, numpy as np
-
+import numpy as np
 from scipy.spatial.transform import Rotation as R
-from gym.envs.registration import register
-
-
-
+from register_env import register_mme
+from myosuite.utils import gym
 def load_bvh(sim, path):
     """
     获取向量化 MyoSuite 环境的观测（obs）数组。
@@ -75,8 +72,7 @@ def load_bvh(sim, path):
         # spine_chaanles = mocap.joint_channels("Character1_Hips")
         # rot_channels = [ch for ch in spine_chaanles if "rotation" in ch.lower()]
         # rot_deg = [float(mocap.frame_joint_channel(f_idx, "Character1_Hips", ch)) for ch in rot_channels]
-        # print(rot_deg)
-
+  
         # rot_channels = [ch for ch in root_channels if "rotation" in ch.lower()]
         # rot_deg = [float(mocap.frame_joint_channel(f_idx, "Character1_Hips", ch)) for ch in rot_channels]
         # rot_rad = np.deg2rad(rot_deg)
@@ -88,12 +84,12 @@ def load_bvh(sim, path):
         # rot_fixed = fix_rot * rot
         # quat_xyzw = rot_fixed.as_quat()  #
      
-        # # fix_rot = R.from_euler('x', -90, degrees=True)
-        # # rot_fixed = fix_rot * R.from_quat(quat_xyzw)
-        # # quat_xyzw_fixed = rot_fixed.as_quat()
-        # # quat_wxyz_fixed = np.array([quat_xyzw_fixed[3], quat_xyzw_fixed[0],
-        # #                             quat_xyzw_fixed[1], quat_xyzw_fixed[2]])
-        #qpos[3:7] = -quat_xyzw
+        # fix_rot = R.from_euler('x', -90, degrees=True)
+        # rot_fixed = fix_rot * R.from_quat(quat_xyzw)
+        # quat_xyzw_fixed = rot_fixed.as_quat()
+        # quat_wxyz_fixed = np.array([quat_xyzw_fixed[3], quat_xyzw_fixed[0],
+        #                             quat_xyzw_fixed[1], quat_xyzw_fixed[2]])
+        # qpos[3:7] = -quat_xyzw
 
         # BVH 单位通常是 cm，MyoSuite 是 m
         root_x, root_y, root_z = pos_vals
@@ -121,54 +117,9 @@ def bvh_play(env, path):
             env.mj_render()
             time.sleep(0.1)
 
-# from test_motion_opensim import read_mot
-# def load_osim(sim):
-#     url = "https://raw.githubusercontent.com/opensim-org/opensim-models/refs/heads/master/Pipelines/Gait2392_Simbody/OutputReference/subject01_walk1_ik.mot"
-#     df = read_mot(url)
-#     joint_names= []
-#     qpos_list = []
-
-#     for i in range(env.sim.model.njnt):
-#         joint_names.append( sim.model.id2name(i, "joint"))
-#     subc = [c for c in df.columns if c in joint_names]
-#     for t in range(len(df)):
-#         qpos = sim.data.qpos.copy()
-       
-#         for jn in subc:
-#             angle =  np.deg2rad(df[jn].loc[t])
-#             if "knee_angle" in jn:  # knee joints have negative sign in myosuite
-#                 angle*= -1
-     
-#         qpos_list.append(angles)
-#     return qpos_list
- 
-# def osim_play(env):
-    
-#     qpos_list = load_osim(env.sim)
-#     for i in range(1000):
-#         qpos_list = load_osim(env.sim)
-
-#         for j in range(len(qpos_list)):
-       
-#             qpos = qpos_list[j]
-#             print('frame', j ,qpos[0:3])
-#             env.sim.data.qpos[4:] = qpos[4:]
-#             env.sim.forward()
-#             env.mj_render()
-#             time.sleep(0.1)
 
 if __name__ == "__main__":
-
-    register(
-        id="fullBodyWalk-v0",
-        entry_point="env.fullbodywalk_v0:FullBodyWalkEnvV0",
-        max_episode_steps=200,
-        kwargs={
-            "model_path":  '../simhive/myo_sim/leg/myolegs.xml', 
-        },
-    )
-
+    register_mme()
     env = gym.make('fullBodyWalk-v0')
     env.reset()
     bvh_play(env, "motion/walk.bvh")
-    #osim_play(env)
