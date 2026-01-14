@@ -13,7 +13,9 @@ def key_callback(key):
         print("⏸️ 暂停" if paused else "▶️ 继续")
 
 def load_muscle_sinwave():
-    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/body/myofullbodyarms_muscle_A.xml")
+    
+    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/arm/myoarm.xml")
+    #model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/body/myofullbodyarms_muscle.xml")
     print("nq:", model.nq)
     print("joint names:", [model.joint(i).name for i in range(model.njnt)])
 
@@ -66,74 +68,93 @@ def load_muscle_sinwave():
                 time.sleep(2.0)
             
             break  # 播完所有关节退出
-def load_zero_action():
+def load_rand_action():
+    register_mme()
+    env = gym.make('fullBodyWalk-v0')
+    env.reset()
+    joint_names = [env.sim.model.id2name(i, "joint") for i in range(env.sim.model.njnt)]
+    muscle_names = [env.sim.model.id2name(i, "actuator") for i in range(env.sim.model.nu)]
+    muscle_act_mask = env.sim.model.actuator_dyntype == mujoco.mjtDyn.mjDYN_MUSCLE
+    muscle_act_count = int(muscle_act_mask.sum())
+    print("🔹 关节数量:", env.sim.model.njnt)
+    print("🔹 自由度数量:", env.sim.model.nq)
+    print("🔹 肌肉执行器数量:", muscle_act_count)
+    print("🔹 action 维度:", env.sim.model.nu)
+
+
+
+
+    # print("🔹 关节名称:")
+    # for name in joint_names:
+    #     print(name)
+    # print("🔹 肌肉/执行器名称:")
+    # for name in muscle_names:
+    #     print(name)
+
+    for _ in range(2000):
+        action = np.random.uniform(low=-1.0, high=1.0, size=env.sim.model.nu).astype(np.float32)
+        env.step(action)
+        env.mj_render()
+        if env.sim.data.ncon:
+            print("🔹 接触对:")
+            for i in range(env.sim.data.ncon):
+                c = env.sim.data.contact[i]
+                geom1 = int(c.geom1)
+                geom2 = int(c.geom2)
+                # Prefer model.id2name to handle wrapper model types.
+                if hasattr(env.sim.model, "id2name"):
+                    try:
+                        g1 = env.sim.model.id2name(geom1, "geom")
+                        g2 = env.sim.model.id2name(geom2, "geom")
+                    except TypeError:
+                        g1 = env.sim.model.id2name(geom1, mujoco.mjtObj.mjOBJ_GEOM)
+                        g2 = env.sim.model.id2name(geom2, mujoco.mjtObj.mjOBJ_GEOM)
+                else:
+                    g1 = mujoco.mj_id2name(env.sim.model, mujoco.mjtObj.mjOBJ_GEOM, geom1)
+                    g2 = mujoco.mj_id2name(env.sim.model, mujoco.mjtObj.mjOBJ_GEOM, geom2)
+                print(f"  {g1} <-> {g2}")
+        time.sleep(0.1)
+      
+    forces = env.sim.data.actuator_force
+    activations = env.sim.data.act
+
+ 
+
+def load_single_muscle_max():
     register_mme()
     env = gym.make('fullBodyWalk-v0')
     env.reset()
     muscle_names = [env.sim.model.id2name(i, "actuator") for i in range(env.sim.model.nu)]
     muscle_act_mask = env.sim.model.actuator_dyntype == mujoco.mjtDyn.mjDYN_MUSCLE
-    muscle_act_count = int(muscle_act_mask.sum())
+    muscle_indices = [i for i, is_muscle in enumerate(muscle_act_mask) if is_muscle]
+    # Filter out trunk/back-related muscles; keep arm/leg-focused actuators.
+    trunk_keywords = (
+        "abd", "obliq", "rect", "spine", "lumbar", "thorax", "back", "iliocost",
+        "multif", "erector", "ql_", "il_", "ltpt", "ltpl", "mf_", "ps_", "io",
+        "eo", "psoas", "lat_", "pecm", "pec", "serr", "trap", "rhom", "dia",
+    )
+    filtered_indices = []
+    for idx in muscle_indices:
+        name = (muscle_names[idx] or "").lower()
+        if not any(key in name for key in trunk_keywords):
+            filtered_indices.append(idx)
+    muscle_indices = filtered_indices
 
-    zero_action = np.zeros(env.sim.model.nu, dtype=np.float32)
-    for _ in range(2000):
-        env.step(zero_action)
-        env.mj_render()
-        time.sleep(0.1)
-    forces = env.sim.data.actuator_force
-    activations = env.sim.data.act
-
-    # for name, a, f in zip(muscle_names, activations, forces):
-    #     print(f"{name:20s} | activation={a:.3f} | force={f:.1f}")
-
-    # for i in range(env.sim.model.njnt):
-    #     name = env.sim.model.id2name(i, "joint")
-    #     addr = env.sim.model.jnt_qposadr[i]
-    #     print(f"{i:02d}  {name:20s}  qpos index: {addr}")
-
-
-
-    print("🔹 关节数量:", env.sim.model.njnt)
-    print("🔹 自由度数量:", env.sim.model.nq)
-    print("🔹 肌肉执行器数量:", muscle_act_count)
-
-    for i in range(env.sim.model.njnt):
-        name = env.sim.model.id2name(i,'joint')
-        joint_type = env.sim.model.jnt_type[i]
-        dof_start = env.sim.model.jnt_dofadr[i]
-        #print(f"{i:2d}: {name:25s}  type={joint_type}  dof_index={dof_start}")
-
-
-def test1():
-    import mujoco, numpy as np
-
-    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/body/myofullbodyarms_muscle_A.xml")
-    data = mujoco.MjData(model)
-    mujoco.mj_forward(model, data)
-
-    def body_xmat(name):
-        bid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, name)
-        return data.xmat[bid].reshape(3,3).copy()
-
-    def body_pos(name):
-        bid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, name)
-        return data.xpos[bid].copy()
-
-    def site_pos(name):
-        sid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, name)
-        return data.site_xpos[sid].copy()
-
-    print("arm_align_r xmat:\\n", body_xmat("arm_align_r"))
-    print("arm_align_l xmat:\\n", body_xmat("arm_align_l"))
-    print("arm_align_r pos:", body_pos("arm_align_r"))
-    print("arm_align_l pos:", body_pos("arm_align_l"))
-
-    print("MFtip_r:", site_pos("MFtip_r"))
-    print("RFtip_r:", site_pos("RFtip_r"))
-    print("MFtip_l:", site_pos("MFtip_l"))
-    print("RFtip_l:", site_pos("RFtip_l"))
+    for idx in muscle_indices:
+        print(f"🔹 肌肉名称: {muscle_names[idx]}")
+        print(f"🔹 激活肌肉: {muscle_names[idx]}")
+        action = np.zeros(env.sim.model.nu, dtype=np.float32)
+        action[idx] = 1.0
+        for _ in range(50):
+            env.step(action)
+            env.mj_render()
+            time.sleep(0.02)
 
 
 
-# test1()
-# load_muscle_sinwave()
-load_zero_action()
+
+
+
+#load_muscle_sinwave()
+#load_rand_action()
+load_single_muscle_max()

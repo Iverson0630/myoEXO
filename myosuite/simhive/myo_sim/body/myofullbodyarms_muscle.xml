@@ -11,9 +11,7 @@
     <compiler angle="radian" meshdir=".." texturedir=".."/>
 
     <worldbody>
-        <site name="RFAradius_target" size="0.02" pos="0.3 0 1.2" group="4" rgba="1 0 0 0.3"/>
-        <site name="LFAradius_target" size="0.02" pos="-0.3 0 1.2" group="4" rgba="0 1 0 0.3"/>
-        
+       
         <body name="root" pos="0 0 1" euler="0 0 -1.57">
             <include file="../body/myotorso_witharms_muscle_chain.xml"/>
             <include file="../leg/assets/myolegs_chain.xml"/>

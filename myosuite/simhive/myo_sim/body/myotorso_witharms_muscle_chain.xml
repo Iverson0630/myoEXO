@@ -488,14 +488,16 @@
                     <include file="../../myo_sim/head/assets/myohead_rigid_chain.xml"/>
                   </body>
                   <!-- Arms attached to upper thorax -->
-                  <body name="shoulder_r" pos="-0.13364198 0.31123934 0.21331504">
-                    <body name="arm_align_r" quat="-0.00421725 0.17706014 0.71818494 0.6729356">
-                      <include file="../../myo_sim/arm/assets/myoarm_muscleR_chain.xml"/>
+                  <body name="arm_anchor" pos="0 0 0" euler="-1.57 0 1.57">
+                    <body name="shoulder_r" pos="0 -0 0.37">
+                      <body name="arm_align_r" >
+                        <include file="../../myo_sim/arm/assets/myoarm_muscleR_chain.xml"/>
+                      </body>
                     </body>
-                  </body>
-                  <body name="shoulder_l" pos="-0.08670579 0.32955747 0.08183972">
-                    <body name="arm_align_l" quat="0.69840688 -0.61270353 -0.16527831 -0.33091585">
-                      <include file="../../myo_sim/arm/assets/myoarm_muscleL_chain.xml"/>
+                    <body name="shoulder_l" pos="0 -0.0 0.37">
+                      <body name="arm_align_l">
+                        <include file="../../myo_sim/arm/assets/myoarm_muscleL_chain.xml"/>
+                      </body>
                     </body>
                   </body>
                   <geom name="torso_geom_1" pos="-0.016 0.119 0" quat="0.980067 0 0 0.198669" type="mesh"  mesh="torso_geom_1_thoracic12_s"/>
