@@ -14,8 +14,8 @@ def key_callback(key):
 
 def load_muscle_sinwave():
     
-    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/arm/myoarm.xml")
-    #model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/body/myofullbodyarms_muscle.xml")
+    #model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/arm/myoarm.xml")
+    model = mujoco.MjModel.from_xml_path("../simhive/myo_sim/body/myofullbodyarms_muscle.xml")
     print("nq:", model.nq)
     print("joint names:", [model.joint(i).name for i in range(model.njnt)])
 
@@ -27,13 +27,26 @@ def load_muscle_sinwave():
     joint_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(model.njnt)]
 
 
+    # 只展示肩部与手臂相关关节
+    arm_keywords = (
+        "shoulder", "elv", "arm", "elbow", "wrist", "pro_sup",
+        "flexion", "deviation", "sternoclavicular", "acromioclavicular",
+        "unrotscap", "unrothum",
+    )
+    arm_joint_indices = []
+    for j, name in enumerate(joint_names):
+        name_l = (name or "").lower()
+        if name_l == "root":
+            continue
+        if any(key in name_l for key in arm_keywords):
+            arm_joint_indices.append(j)
+
     # 每个关节逐个演示角度变化
     with viewer.launch_passive(model, data) as v:
         while v.is_running():
 
-            time.sleep(20.0)
-            for j in range(model.njnt):
-                
+    
+            for j in arm_joint_indices:
                 name = joint_names[j]
                 print(f"展示关节: {name}")
                 addr = model.jnt_qposadr[j]
@@ -64,8 +77,8 @@ def load_muscle_sinwave():
                         data.qpos[addr] = np.deg2rad(angle)
                         mujoco.mj_forward(model, data)
                         v.sync()
-                        time.sleep(0.05)
-                time.sleep(2.0)
+                        time.sleep(0.01)
+                time.sleep(1.0)
             
             break  # 播完所有关节退出
 def load_rand_action():
@@ -84,12 +97,12 @@ def load_rand_action():
 
 
 
-    # print("🔹 关节名称:")
-    # for name in joint_names:
-    #     print(name)
-    # print("🔹 肌肉/执行器名称:")
-    # for name in muscle_names:
-    #     print(name)
+    print("🔹 关节名称:")
+    for name in joint_names:
+        print(name)
+    print("🔹 肌肉/执行器名称:")
+    for name in muscle_names:
+        print(name)
 
     for _ in range(2000):
         action = np.random.uniform(low=-1.0, high=1.0, size=env.sim.model.nu).astype(np.float32)
@@ -155,6 +168,6 @@ def load_single_muscle_max():
 
 
 
-#load_muscle_sinwave()
-#load_rand_action()
-load_single_muscle_max()
+# load_muscle_sinwave()
+load_rand_action()
+# load_single_muscle_max()

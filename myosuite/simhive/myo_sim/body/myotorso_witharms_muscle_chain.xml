@@ -489,12 +489,12 @@
                   </body>
                   <!-- Arms attached to upper thorax -->
                   <body name="arm_anchor" pos="0 0 0" euler="-1.57 0 1.57">
-                    <body name="shoulder_r" pos="0 -0 0.37">
+                    <body name="shoulder_r" pos="-0.02 -0 0.37">
                       <body name="arm_align_r" >
                         <include file="../../myo_sim/arm/assets/myoarm_muscleR_chain.xml"/>
                       </body>
                     </body>
-                    <body name="shoulder_l" pos="0 -0.0 0.37">
+                    <body name="shoulder_l" pos="0.02 -0.0 0.37">
                       <body name="arm_align_l">
                         <include file="../../myo_sim/arm/assets/myoarm_muscleL_chain.xml"/>
                       </body>

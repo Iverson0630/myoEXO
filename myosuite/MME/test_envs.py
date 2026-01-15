@@ -20,7 +20,6 @@ action = envs.action_space.sample()
 envs.reset()
 env = envs.envs[0]   
 obs, reward, done, truncated, info  =   envs.step(action) # take a random action
-print(info.keys()) #dict_keys(['final_observation', '_final_observation', 'final_info', '_final_info'])
 print('===============environment info=====================')
 
 sim_dt = env.sim.model.opt.timestep
@@ -30,12 +29,13 @@ ctrl_dt = env.dt
 
 print(f"Simulation frequency: {1/sim_dt:.1f} Hz")
 print(f"Control frequency: {1/ctrl_dt:.1f} Hz")
-
-print('human action shape',action.shape[1])
-print('human state shape',obs.shape[1])
-#print('info dict',info['final_info'][0].keys())
-# print('state dict',info['final_info'][0]['obs_dict'].keys())
-# print('qpos_without_xy shape',info['final_info'][0]['obs_dict']['qpos_without_xy'].shape[0])
-# print('human torque shape',info['final_info'][0]['obs_dict']['human_torque'].shape[0])
-
+print("joint number:", env.sim.model.njnt)
+print("dof number:", env.sim.model.nq)
+print('human action shape:',action.shape)
+print('human state shape:',obs.shape)
+print('reward shape:',reward.shape)
+print('info dict:',info.keys())
+print('obs dict dims:', {k: getattr(v, "shape", ()) for k, v in info['obs_dict'][0].items()})
+print('state dict dims:', {k: getattr(v, "shape", ()) for k, v in info['state'][0].items()})
+print('reward dict:',info['rwd_dict'][0].keys())
 

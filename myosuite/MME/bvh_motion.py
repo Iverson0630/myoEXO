@@ -22,18 +22,82 @@ def load_bvh(sim, path):
     with open(path) as f:
         mocap = Bvh(f.read())
 
+    # Each entry maps BVH joint -> list of (mujoco_joint, bvh_axis, scale).
     mapping = {
     # 右腿
-    "Character1_RightUpLeg": "hip_flexion_r",
-    "Character1_RightLeg": "knee_angle_r",
-    "Character1_RightFoot": "ankle_angle_r",
-    "Character1_RightToeBase": "mtp_angle_r",
+    "Character1_RightUpLeg": [
+        ("hip_flexion_r", "X", 1.0),
+        #("hip_adduction_r", "Z", 1.0),
+        ("hip_rotation_r", "Y", 1.0),
+    ],
+    "Character1_RightLeg": [("knee_angle_r", "X", 1.0)],
+    "Character1_RightFoot": [("ankle_angle_r", "X", 1.0)],
+    "Character1_RightToeBase": [("mtp_angle_r", "X", 1.0)],
     # 左腿
-    "Character1_LeftUpLeg": "hip_flexion_l",
-    "Character1_LeftLeg": "knee_angle_l",
-    "Character1_LeftFoot": "ankle_angle_l",
-    "Character1_LeftToeBase": "mtp_angle_l",
-
+    "Character1_LeftUpLeg": [
+        ("hip_flexion_l", "X", 1.0),
+        #("hip_adduction_l", "Z", 1.0),
+        ("hip_rotation_l", "Y", 1.0),
+    ],
+    "Character1_LeftLeg": [("knee_angle_l", "X", 1.0)],
+    "Character1_LeftFoot": [("ankle_angle_l", "X", 1.0)],
+    "Character1_LeftToeBase": [("mtp_angle_l", "X", 1.0)],
+    # 躯干（分配到三个腰椎自由度）
+    # "Character1_Spine": [
+    #     ("flex_extension", "X", 0.5),
+    #     ("lat_bending", "Z", 0.5),
+    #     ("axial_rotation", "Y", 0.5),
+    # ],
+    # "Character1_Spine1": [
+    #     ("flex_extension", "X", 0.5),
+    #     ("lat_bending", "Z", 0.5),
+    #     ("axial_rotation", "Y", 0.5),
+    # ],
+    # 头颈
+    "Character1_Neck": [("neck_rotation", "Y", 1.0)],
+    "Character1_Head": [("neck_flexion", "X", 1.0)],
+    # 右臂（简化关节优先）
+    "Character1_RightShoulder": [
+        ("arm_flex_l", "X", 5.0),
+        # ("arm_add_r", "Y", 1.0),
+        # ("arm_rot_r", "Z", 1.0),
+        ("unrothum_l1", "Z", 1.0),
+        ("unrothum_l2", "Y", 1.0),
+        ("unrothum_l3", "X", 5.0),
+    ],
+    "Character1_RightArm": [],
+    "Character1_RightForeArm": [
+        ("elbow_flex_r", "X", 1.0),
+        ("elbow_flexion_r", "X", 1.0),
+        ("pro_sup_r", "Y", 1.0),
+    ],
+    "Character1_RightHand": [
+        ("wrist_flex_r", "X", 1.0),
+        ("wrist_dev_r", "Z", 1.0),
+        ("flexion_r", "X", 1.0),
+        ("deviation_r", "Z", 1.0),
+    ],
+    # 左臂（简化关节优先）
+    "Character1_LeftShoulder": [
+        ("arm_flex_r", "X", 5.0),
+        # ("arm_add_l", "Y", 1.0),
+        # ("arm_rot_l", "Z", 1.0),
+        ("unrothum_r1", "Z", 1.0),
+        ("unrothum_r2", "Y", 1.0),
+        ("unrothum_r3", "X", 5.0),
+    ],
+    "Character1_LeftArm": [],
+    "Character1_LeftForeArm": [
+        ("elbow_flex_l", "X", 1.0),
+        ("elbow_flexion_l", "X", 1.0),
+        ("pro_sup_l", "Y", 1.0),
+    ],
+    "Character1_LeftHand": [
+        ("wrist_flex_l", "X", 1.0),
+        ("wrist_dev_l", "Z", 1.0),
+        ("flexion_l", "X", 1.0),
+        ("deviation_l", "Z", 1.0),
+    ],
     }
     qpos_list = []
     joint_pos_list = []
@@ -45,24 +109,44 @@ def load_bvh(sim, path):
     # BVH 单位通常是 cm，MyoSuite 是 m
     initial_pos = np.array(initial_pos) / 100.0
 
-
+ 
+    #  mujoco x-> left  y->forward   z->updown
+    #  bvh x-> left    y-> updown      z-> forward
     for f_idx in range(0, mocap.nframes):
         qpos = sim.data.qpos.copy()
-        qpos[2] = sim.model.key_qpos[0][2] 
-        # 遍历每个 BVH 关节并赋值给 MuJoCo
-        for bvh_name, mj_name in mapping.items():
+       
+        # 遍历每个 BVH 关节并赋值给 MuJoCo（多关节/多轴映射）
+        joint_values = {}
+        for bvh_name, mj_mappings in mapping.items():
+            try:
+                channels = mocap.joint_channels(bvh_name)
+            except Exception:
+                continue
+            rot_values = {}
+            for ch in channels:
+                if "rotation" not in ch.lower():
+                    continue
+                axis = ch[0].upper()
+                rot_values[axis] = float(mocap.frame_joint_channel(f_idx, bvh_name, ch))
+
+            for mj_name, axis, scale in mj_mappings:
+                if axis not in rot_values:
+                    continue
+                angle_deg = rot_values[axis] * scale
+                if bvh_name in ("Character1_RightUpLeg", "Character1_LeftUpLeg") and axis == "X":
+                    angle_deg = -angle_deg
+                joint_values[mj_name] = joint_values.get(mj_name, 0.0) + np.deg2rad(angle_deg)
+
+        for mj_name, angle_rad in joint_values.items():
             try:
                 jid = sim.model.name2id(mj_name, "joint")
                 addr = sim.model.jnt_qposadr[jid]
-                channels = mocap.joint_channels(bvh_name)
-                rot_channels = [ch for ch in channels if "rotation" in ch.lower()]
-                angle_deg = [float(mocap.frame_joint_channel(f_idx, bvh_name, ch)) for ch in rot_channels]
-                if bvh_name=='Character1_RightUpLeg' or  bvh_name=='Character1_LeftUpLeg':
-                    angle_deg[1] =   - angle_deg[1]
-                qpos[addr] = np.deg2rad(angle_deg[1])  # x rotation channel
-
-            except KeyError:
+                qpos[addr] = angle_rad
+            except Exception:
+                # Skip joints that are not present in this model.
                 pass
+
+    
 
         root_channels = mocap.joint_channels("Character1_Hips")
         root_trans = [ch for ch in root_channels if "position" in ch.lower()]
@@ -93,9 +177,7 @@ def load_bvh(sim, path):
 
         # BVH 单位通常是 cm，MyoSuite 是 m
         root_x, root_y, root_z = pos_vals
-     
-        #  mujoco x-> left  y->forward   z->updown
-        #  bvh x-> left    y-> updown      z-> forward
+    
     
         qpos[0:3] = qpos[0:3] + [ root_x, -root_z, root_y]
         
@@ -110,7 +192,7 @@ def bvh_play(env, path):
         for j in range(len(qpos_list)):
        
             qpos = qpos_list[j]
-            print('frame', j ,qpos[7:])
+
             env.sim.data.qpos[4:] = qpos[4:]
             env.sim.data.qpos[0:3] = qpos[0:3]
             env.sim.forward()
@@ -122,4 +204,4 @@ if __name__ == "__main__":
     register_mme()
     env = gym.make('fullBodyWalk-v0')
     env.reset()
-    bvh_play(env, "motion/walk.bvh")
+    bvh_play(env, "motion/run.bvh")
