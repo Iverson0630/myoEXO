@@ -28,7 +28,7 @@ class FullBodyWalkEnvV0(BaseV0):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "joint_rwd": 0.5,
         "alive": 0.1,
-        "done": -10,
+        "done": 0.0,
         "pos_rwd": 0.2,
         "ori_rwd": 0.3,
     }
@@ -67,7 +67,7 @@ class FullBodyWalkEnvV0(BaseV0):
         self,
         obs_keys: list = DEFAULT_OBS_KEYS,
         weighted_reward_keys: dict = DEFAULT_RWD_KEYS_AND_WEIGHTS,
-        min_height= 0.8,
+        min_height= 0.7,
         max_rot=0.8,
         hip_period=100,
         reset_type="init",
@@ -116,6 +116,7 @@ class FullBodyWalkEnvV0(BaseV0):
         obs_dict["human_torque"] = self.human_torque().copy()
         if sim.model.na > 0:
             obs_dict["act"] = sim.data.act[:].copy()
+        self._guard_obs_reward(obs_dict, prefix="obs")
         return obs_dict
 
      
@@ -149,6 +150,7 @@ class FullBodyWalkEnvV0(BaseV0):
         rwd_dict["dense"] = np.sum(
             [wt * rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0
         )
+        self._guard_obs_reward(rwd_dict, prefix="rwd")
         return rwd_dict
 
     
@@ -185,6 +187,18 @@ class FullBodyWalkEnvV0(BaseV0):
     def exp_of_squared(self, val, w):
         return np.exp(-w*val*val)
 
+    def _guard_obs_reward(self, data_dict, prefix="obs"):
+        if not hasattr(self, "_nan_warned"):
+            self._nan_warned = set()
+        for key, val in data_dict.items():
+            arr = np.asarray(val)
+            if not np.all(np.isfinite(arr)):
+                warn_key = f"{prefix}:{key}"
+                if warn_key not in self._nan_warned:
+                    print(f"[nan-guard] non-finite in {warn_key}, replacing with 0")
+                    self._nan_warned.add(warn_key)
+                data_dict[key] = np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0)
+
     def _quat_angle(self, quat, quat_ref):
         quat = quat / np.linalg.norm(quat)
         quat_ref = quat_ref / np.linalg.norm(quat_ref)
@@ -210,9 +224,9 @@ class FullBodyWalkEnvV0(BaseV0):
         return qpos, qvel
 
     def step(self, *args, **kwargs):
-        results = super().step(*args, **kwargs)
+        super().step(*args, **kwargs)
         self.steps += 1
-        return results
+        return self.forward(**kwargs)
 
     def reset(self, **kwargs):
         self.steps = 0
@@ -358,3 +372,99 @@ class FullBodyWalkEnvV0(BaseV0):
                 for name in names
             ]
         )
+
+
+class FullBodyBalanceEnvV0(FullBodyWalkEnvV0):
+    DEFAULT_RWD_KEYS_AND_WEIGHTS = {
+        "alive": 0.1,
+        "done": -10.0,
+        "com_height_rwd": 0.5,
+        "com_stability_rwd": 0.5,
+        "com_vel_xy_rwd": 0.0,
+        "com_center_rwd": 0.5,
+        "torso_angvel_rwd": 0.3,
+    }
+
+    def _setup(self, weighted_reward_keys=None, **kwargs):
+        if weighted_reward_keys is None:
+            weighted_reward_keys = self.DEFAULT_RWD_KEYS_AND_WEIGHTS
+        super()._setup(weighted_reward_keys=weighted_reward_keys, **kwargs)
+        self.init_com_height = None
+
+    def get_obs_dict(self, sim):
+        obs_dict = {}
+        obs_dict["t"] = np.array([sim.data.time])
+        obs_dict["time"] = np.array([sim.data.time])
+        obs_dict["qpos_without_xy"] = sim.data.qpos[2:].copy()
+        obs_dict["qvel"] = sim.data.qvel[:].copy() * self.dt
+        obs_dict["com_vel"] = np.array([self._get_com_velocity().copy()])
+        obs_dict["com_pos"] = np.array([self._get_com().copy()])
+        obs_dict["human_torque"] = self.human_torque().copy()
+        if sim.model.na > 0:
+            obs_dict["act"] = sim.data.act[:].copy()
+        self._guard_obs_reward(obs_dict, prefix="obs")
+        return obs_dict
+
+    def get_reward_dict(self, obs_dict):
+        com = self._get_com()
+        com_vel = self._get_com_velocity()
+        if not hasattr(self, "init_com_height") or self.init_com_height is None:
+            self.init_com_height = com[2]
+
+        com_height_rwd = np.exp(-5.0 * (com[2] - self.init_com_height) ** 2)
+        com_stability_rwd = np.exp(-2.0 * np.linalg.norm(com_vel) ** 2)
+        com_vel_xy_rwd = np.exp(-2.0 * np.linalg.norm(com_vel[:2]) ** 2)
+        try:
+            foot_id_l = self.sim.model.body_name2id("talus_l")
+            foot_id_r = self.sim.model.body_name2id("talus_r")
+            foot_center = 0.5 * (
+                self.sim.data.body_xpos[foot_id_l][:2]
+                + self.sim.data.body_xpos[foot_id_r][:2]
+            )
+            com_center_rwd = np.exp(-5.0 * np.linalg.norm(com[:2] - foot_center) ** 2)
+        except Exception:
+            com_center_rwd = 1.0
+        torso_id = self.sim.model.body_name2id("torso")
+        if hasattr(self.sim.data, "get_body_xvelr"):
+            torso_angvel = self.sim.data.get_body_xvelr("torso").copy()
+        else:
+            torso_angvel = self.sim.data.cvel[torso_id][:3].copy()
+        torso_angvel_rwd = np.exp(-1.0 * np.linalg.norm(torso_angvel) ** 2)
+        solved = self.sim.data.time >= 10.0
+        rwd_dict = collections.OrderedDict(
+                    (
+                        # Optional Keys
+                        ("com_height_rwd", com_height_rwd),
+                        ("com_stability_rwd", com_stability_rwd),
+                        ("com_vel_xy_rwd", com_vel_xy_rwd),
+                        ("com_center_rwd", com_center_rwd),
+                        ("torso_angvel_rwd", torso_angvel_rwd),
+                        ("alive", 1.0),
+                        # Must keys
+                        ("sparse", min(com_height_rwd, com_stability_rwd)),
+                        ("solved", solved),
+                        ("done", self._get_done()),
+                    )
+                )
+        rwd_dict["dense"] = np.sum(
+            [wt * rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0
+        )
+        self._guard_obs_reward(rwd_dict, prefix="rwd")
+        return rwd_dict
+    def reset(self, **kwargs):
+            self.steps = 0
+            if self.reset_type == "random":
+                qpos, qvel = self.get_randomized_initial_state()
+            elif self.reset_type == "init":
+                qpos, qvel = self.sim.model.key_qpos[0], self.sim.model.key_qvel[0] 
+
+            # Slight dorsiflexion so heels touch first.
+            for joint_name in ("ankle_angle_l", "ankle_angle_r"):
+                j_id = self.sim.model.joint_name2id(joint_name)
+                qpos_idx = self.sim.model.jnt_qposadr[j_id]
+                qpos[qpos_idx] = np.deg2rad(5.0)
+            self.robot.sync_sims(self.sim, self.sim_obsd)
+        
+            obs = BaseV0.reset(self, reset_qpos=qpos, reset_qvel=qvel, **kwargs)
+            self.init_com_height = self._get_com()[2]
+            return obs

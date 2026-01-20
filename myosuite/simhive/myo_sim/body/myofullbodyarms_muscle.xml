@@ -12,7 +12,7 @@
 
     <worldbody>
        
-        <body name="root" pos="0 0 1" euler="0 0 -1.57">
+        <body name="root" pos="0 0 0.93" euler="0 0 -1.57">
             <include file="../body/myotorso_witharms_muscle_chain.xml"/>
             <include file="../leg/assets/myolegs_chain.xml"/>
             <freejoint name='root'/>

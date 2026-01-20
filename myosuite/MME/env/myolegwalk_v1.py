@@ -12,176 +12,6 @@ from myosuite.utils import gym
 from myosuite.utils.quat_math import quat2mat
 
 
-class ReachEnvV0(BaseV0):
-
-    DEFAULT_OBS_KEYS = ["qpos", "qvel", "tip_pos", "reach_err"]
-    DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": 1.0,
-        "bonus": 4.0,
-        "penalty": 50,
-        "act_reg": 1,
-    }
-
-    def __init__(self, model_path, obsd_model_path=None, seed=None, **kwargs):
-
-        # EzPickle.__init__(**locals()) is capturing the input dictionary of the init method of this class.
-        # In order to successfully capture all arguments we need to call gym.utils.EzPickle.__init__(**locals())
-        # at the leaf level, when we do inheritance like we do here.
-        # kwargs is needed at the top level to account for injection of __class__ keyword.
-        # Also see: https://github.com/openai/gym/pull/1497
-        gym.utils.EzPickle.__init__(self, model_path, obsd_model_path, seed, **kwargs)
-
-        # This two step construction is required for pickling to work correctly. All arguments to all __init__
-        # calls must be pickle friendly. Things like sim / sim_obsd are NOT pickle friendly. Therefore we
-        # first construct the inheritance chain, which is just __init__ calls all the way down, with env_base
-        # creating the sim / sim_obsd instances. Next we run through "setup"  which relies on sim / sim_obsd
-        # created in __init__ to complete the setup.
-        super().__init__(
-            model_path=model_path,
-            obsd_model_path=obsd_model_path,
-            seed=seed,
-            env_credits=self.MYO_CREDIT,
-        )
-
-        self._setup(**kwargs)
-
-    def _setup(
-        self,
-        target_reach_range: dict,
-        joint_random_range: tuple = (0.0, 0.0),
-        far_th=0.35,
-        obs_keys: list = DEFAULT_OBS_KEYS,
-        weighted_reward_keys: dict = DEFAULT_RWD_KEYS_AND_WEIGHTS,
-        **kwargs,
-    ):
-        self.far_th = far_th
-        self.target_reach_range = target_reach_range
-        self.joint_random_range = joint_random_range
-        super()._setup(
-            obs_keys=obs_keys,
-            weighted_reward_keys=weighted_reward_keys,
-            sites=self.target_reach_range.keys(),
-            **kwargs,
-        )
-        self.init_qpos[:] = self.sim.model.key_qpos[0]
-        self.init_qvel[:] = self.sim.model.key_qvel[0]
-        # find geometries with ID == 1 which indicates the skins
-        geom_1_indices = np.where(self.sim.model.geom_group == 1)
-        # Change the alpha value to make it transparent
-        self.sim.model.geom_rgba[geom_1_indices, 3] = 0
-
-        # move heightfield down if not used
-        self.sim.model.geom_rgba[self.sim.model.geom_name2id("terrain")][-1] = 0.0
-        self.sim.model.geom_pos[self.sim.model.geom_name2id("terrain")] = np.array(
-            [0, 0, -10]
-        )
-
-    def get_obs_dict(self, sim):
-        obs_dict = {}
-        obs_dict["time"] = np.array([sim.data.time])
-        obs_dict["qpos"] = sim.data.qpos[:].copy()
-        obs_dict["qvel"] = sim.data.qvel[:].copy() * self.dt
-        if sim.model.na > 0:
-            obs_dict["act"] = sim.data.act[:].copy()
-
-        # reach error
-        obs_dict["tip_pos"] = np.array([])
-        obs_dict["target_pos"] = np.array([])
-        for isite in range(len(self.tip_sids)):
-            obs_dict["tip_pos"] = np.append(
-                obs_dict["tip_pos"], sim.data.site_xpos[self.tip_sids[isite]].copy()
-            )
-            obs_dict["target_pos"] = np.append(
-                obs_dict["target_pos"],
-                sim.data.site_xpos[self.target_sids[isite]].copy(),
-            )
-        obs_dict["reach_err"] = np.array(obs_dict["target_pos"]) - np.array(
-            obs_dict["tip_pos"]
-        )
-        return obs_dict
-
-    def get_reward_dict(self, obs_dict):
-        reach_dist = np.linalg.norm(obs_dict["reach_err"], axis=-1)
-        vel_dist = np.linalg.norm(obs_dict["qvel"], axis=-1)
-        act_mag = (
-            np.linalg.norm(self.obs_dict["act"], axis=-1) / self.sim.model.na
-            if self.sim.model.na != 0
-            else 0
-        )
-        far_th = (
-            self.far_th * len(self.tip_sids)
-            if np.squeeze(obs_dict["time"]) > 2 * self.dt
-            else np.inf
-        )
-        # near_th = len(self.tip_sids)*.0125
-        near_th = len(self.tip_sids) * 0.050
-        rwd_dict = collections.OrderedDict(
-            (
-                # Optional Keys
-                ("reach", 10.0 - 1.0 * reach_dist - 10.0 * vel_dist),
-                (
-                    "bonus",
-                    1.0 * (reach_dist < 2 * near_th) + 1.0 * (reach_dist < near_th),
-                ),
-                ("act_reg", -100.0 * act_mag),
-                ("penalty", -1.0 * (reach_dist > far_th)),
-                # Must keys
-                ("sparse", -1.0 * reach_dist),
-                ("solved", reach_dist < near_th),
-                ("done", reach_dist > far_th),
-            )
-        )
-        # print(f"reach_dist:{reach_dist}, far_th:{far_th}")
-        rwd_dict["dense"] = np.sum(
-            [wt * rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0
-        )
-        return rwd_dict
-
-    # generate a valid target
-    def generate_targets(self):
-        for site, span in self.target_reach_range.items():
-            sid = self.sim.model.site_name2id(site)
-            sid_target = self.sim.model.site_name2id(site + "_target")
-            self.sim.model.site_pos[sid_target] = self.sim.data.site_xpos[
-                sid
-            ].copy() + self.np_random.uniform(low=span[0], high=span[1])
-        self.sim.forward()
-
-    # generate random qpos for targets (only at linear joints)
-    def generate_qpos(self):
-        qpos_rand = self.np_random.uniform(
-            low=self.joint_random_range[0],
-            high=self.joint_random_range[1],
-            size=self.init_qpos.shape,
-        )
-        qpos_new = self.init_qpos.copy()
-        qpos_new[self.sim.model.jnt_qposadr] += qpos_rand[
-            self.sim.model.jnt_qposadr
-        ]  # only linear joints
-        qpos_new[self.sim.model.jnt_qposadr] = np.clip(
-            qpos_new[self.sim.model.jnt_qposadr],
-            self.sim.model.jnt_range[:, 0],
-            self.sim.model.jnt_range[:, 1],
-        )
-        return qpos_new
-
-    def reset(self, **kwargs):
-        # generate random targets
-        if np.ptp(self.joint_random_range) > 0:
-            self.sim.data.qpos = self.generate_qpos()
-        self.sim.forward()
-        self.generate_targets()
-
-        # sync targets to sim_obsd
-        self.robot.sync_sims(self.sim, self.sim_obsd)
-
-        # generate resets
-        if np.ptp(self.joint_random_range) > 0:
-            obs = super().reset(reset_qpos=self.generate_qpos(), **kwargs)
-        else:
-            obs = super().reset(**kwargs)
-        return obs
-
 
 class WalkEnvV0(BaseV0):
 
@@ -267,6 +97,7 @@ class WalkEnvV0(BaseV0):
         obs_dict["t"] = np.array([sim.data.time])
         obs_dict["time"] = np.array([sim.data.time])
         obs_dict["qpos_without_xy"] = sim.data.qpos[2:].copy()
+     
         obs_dict["qvel"] = sim.data.qvel[:].copy() * self.dt
         obs_dict["com_vel"] = np.array([self._get_com_velocity().copy()])
         obs_dict["torso_angle"] = np.array([self._get_torso_angle().copy()])
@@ -409,7 +240,6 @@ class WalkEnvV0(BaseV0):
         over only achieves flat rewards.
         """
         vel = self._get_com_velocity()
-    
         return np.exp(-np.square(self.target_y_vel - vel[1])) + np.exp(
             -np.square(self.target_x_vel - vel[0])
         )

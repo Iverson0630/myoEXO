@@ -204,4 +204,4 @@ if __name__ == "__main__":
     register_mme()
     env = gym.make('fullBodyWalk-v0')
     env.reset()
-    bvh_play(env, "motion/run.bvh")
+    bvh_play(env, "motion/walk.bvh")

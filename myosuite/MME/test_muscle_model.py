@@ -3,8 +3,14 @@ import time
 import mujoco
 from mujoco import viewer
 import numpy as np
+import os
+import xml.etree.ElementTree as ET
 from register_env import register_mme
 paused = False   # 是否暂停
+
+from config import Config
+config = Config()
+
 def key_callback(key):
     """在viewer中按空格暂停/继续"""
 
@@ -83,7 +89,7 @@ def load_muscle_sinwave():
             break  # 播完所有关节退出
 def load_rand_action():
     register_mme()
-    env = gym.make('fullBodyWalk-v0')
+    env = gym.make(config.model.env)
     env.reset()
     joint_names = [env.sim.model.id2name(i, "joint") for i in range(env.sim.model.njnt)]
     muscle_names = [env.sim.model.id2name(i, "actuator") for i in range(env.sim.model.nu)]
@@ -135,21 +141,20 @@ def load_rand_action():
 
 def load_single_muscle_max():
     register_mme()
-    env = gym.make('fullBodyWalk-v0')
+    env = gym.make(config.model.env)
     env.reset()
     muscle_names = [env.sim.model.id2name(i, "actuator") for i in range(env.sim.model.nu)]
     muscle_act_mask = env.sim.model.actuator_dyntype == mujoco.mjtDyn.mjDYN_MUSCLE
     muscle_indices = [i for i, is_muscle in enumerate(muscle_act_mask) if is_muscle]
-    # Filter out trunk/back-related muscles; keep arm/leg-focused actuators.
-    trunk_keywords = (
-        "abd", "obliq", "rect", "spine", "lumbar", "thorax", "back", "iliocost",
-        "multif", "erector", "ql_", "il_", "ltpt", "ltpl", "mf_", "ps_", "io",
-        "eo", "psoas", "lat_", "pecm", "pec", "serr", "trap", "rhom", "dia",
+    ankle_keywords = (
+        "tibant", "tib_ant", "tibialis", "tibpost", "edl", "ehl",
+        "soleus", "gaslat", "gasmed", "fhl", "fdl",
+        "perlong", "perbrev",
     )
     filtered_indices = []
     for idx in muscle_indices:
         name = (muscle_names[idx] or "").lower()
-        if not any(key in name for key in trunk_keywords):
+        if any(key in name for key in ankle_keywords):
             filtered_indices.append(idx)
     muscle_indices = filtered_indices
 
@@ -163,11 +168,72 @@ def load_single_muscle_max():
             env.mj_render()
             time.sleep(0.02)
 
+def load_left_leg_muscle_max():
+    register_mme()
+    env = gym.make(config.model.env)
+    env.reset()
+ 
+    muscle_names = [env.sim.model.id2name(i, "actuator") for i in range(env.sim.model.nu)]
+    muscle_act_mask = env.sim.model.actuator_dyntype == mujoco.mjtDyn.mjDYN_MUSCLE
+    muscle_indices = [i for i, is_muscle in enumerate(muscle_act_mask) if is_muscle]
+
+    xml_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "simhive",
+        "myo_sim",
+        "body",
+        "myotorso_witharms_muscle_chain.xml",
+    )
+    xml_path = os.path.normpath(xml_path)
+
+    def collect_actuator_names(path, visited):
+        if path in visited or not os.path.exists(path):
+            return set()
+        visited.add(path)
+        names = set()
+        root = ET.parse(path).getroot()
+        for actuator in root.iter("actuator"):
+            for child in actuator:
+                name = child.attrib.get("name")
+                if name:
+                    names.add(name)
+        for inc in root.iter("include"):
+            inc_file = inc.attrib.get("file")
+            if not inc_file:
+                continue
+            inc_path = os.path.normpath(os.path.join(os.path.dirname(path), inc_file))
+            names.update(collect_actuator_names(inc_path, visited))
+        return names
+
+    xml_actuators = collect_actuator_names(xml_path, set())
+    left_xml_actuators = {n for n in xml_actuators if n.endswith("_l")}
+    left_leg_indices = [
+        idx
+        for idx in muscle_indices
+        if muscle_names[idx] in left_xml_actuators
+    ]
+    if not left_leg_indices:
+        left_leg_indices = [
+            idx
+            for idx in muscle_indices
+            if (muscle_names[idx] or "").lower().endswith("_l")
+        ]
+
+    action = np.array(env.action_space.low, dtype=np.float32)
+    action[left_leg_indices] = np.array(env.action_space.high[left_leg_indices], dtype=np.float32)
+
+    for _ in range(2000):
+        env.step(action)
+        env.mj_render()
+        time.sleep(0.02)
+
 
 
 
 
 
 # load_muscle_sinwave()
-load_rand_action()
-# load_single_muscle_max()
+# load_rand_action()
+load_single_muscle_max()
+# load_left_leg_muscle_max()

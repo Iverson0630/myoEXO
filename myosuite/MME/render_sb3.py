@@ -2,23 +2,25 @@ import argparse
 import csv
 import os
 import time
-
 import gymnasium as gym
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from stable_baselines3 import PPO
-from register_env import register_mme
+from stable_baselines3 import PPO, SAC
+from register_env import make_env
+from config import Config
+
+config = Config()
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model-path",
-        default='nn/human/walk/sb3_600000_steps.zip',
+        default='nn/human/myoLegWalk_SAC/sb3_10000000_steps.zip',
         help="Path to a trained SB3 model .zip file",
     )
-    parser.add_argument("--env-id", default="fullBodyWalk-v0")
+
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--max-steps", type=int, default=200000)
-    parser.add_argument("--deterministic", action="store_true")
+    parser.add_argument("--deterministic",  default=False,action="store_true")
     return parser.parse_args()
 
 
@@ -26,9 +28,9 @@ def main():
     args = parse_args()
     if not os.path.exists(args.model_path):
         raise FileNotFoundError(f"Model not found: {args.model_path}")
-    register_mme()
-    model = PPO.load(args.model_path, device=args.device)
-    env = gym.make(args.env_id)
+    env = make_env(config.model.env)
+    model = SAC.load(args.model_path, device=args.device)
+   
 
     obs, info = env.reset()
     epi_len, reward_sum = 0, 0
@@ -42,14 +44,14 @@ def main():
         if terminated:
             print("======")
             print("episode len", epi_len, "episode reward", reward_sum)
-            print(info['rwd_dict'])
+         
 
             # logger.save_if_good(reward_sum)
             epi_len, reward_sum = 0, 0
             
             obs, info = env.reset()
         env.mj_render()   # 如果你想用自己的渲染
-        time.sleep(0.02)
+        time.sleep(0.01)
     env.close()
 
 

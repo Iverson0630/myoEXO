@@ -96,7 +96,6 @@ class BaseV0(env_base.MujocoEnv):
             )
         else:
             isNormalized = self.normalize_act  # accept requested reprojection
-
         # implement abnormalities
         if self.muscle_condition == "fatigue":
             # import ipdb; ipdb.set_trace()
