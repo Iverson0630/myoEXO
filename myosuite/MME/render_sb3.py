@@ -14,7 +14,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model-path",
-        default='nn/human/myoLegWalk_SAC/sb3_10000000_steps.zip',
+        default='nn/human/walk/sb3_final.zip',
         help="Path to a trained SB3 model .zip file",
     )
 

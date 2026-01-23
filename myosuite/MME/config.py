@@ -3,11 +3,11 @@ from dataclasses import dataclass
 @dataclass
 class Config:
     class model:
-        num_env: int = 16
+        num_env: int = 8
         use_exo: bool = False
         model_path: str = "../simhive/myo_sim/body/myofullbodyarms_muscle.xml"
         bvh_path : str = 'motion/walk.bvh'
-        env : str = 'myoLegWalk-v1' #myoLegWalk fullBodyBalance
+        env : str = 'fullBodyWalk-v0' #myoLegWalk fullBodyBalance
         sim_hz: int = 1000
         ctl_hz: int = 100
     class train:
@@ -15,7 +15,7 @@ class Config:
         n_steps: int = 2048
         n_epochs:int = 10
         max_iteration: int = 2e7
-        buffer_size:int = 3_000_000
+        buffer_size:int = 1_000_000
         batch_size:int = 256
         learning_rate:float = 3e-4
         lr_schedule: str = "linear"
@@ -36,6 +36,6 @@ class Config:
 
     class save_dir:
         checkpoints:str = 'None'
-        nn_dir: str = 'nn/human/myoLegWalk_SAC'
+        nn_dir: str = 'nn/human/walk'
         wandb_project:str = 'MME'
-        wandb_dir : str= 'myoLegWalk_SAC'
+        wandb_dir : str= 'walk'

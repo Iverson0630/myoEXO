@@ -20,17 +20,23 @@ class FullBodyWalkEnvV0(BaseV0):
         "qvel",
         "com_vel",
         "com_pos",
-        "human_torque",
+        "feet_heights",
+        "height",
+        "feet_rel_positions",
+        "muscle_length",
+        "muscle_velocity",
+        "muscle_force",
         "act",
     ]
 
 
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "joint_rwd": 0.5,
-        "alive": 0.1,
+        "vel_reward": 1.0,
+        "joint_rwd": 2.0,
+        "alive": 0.5,
         "done": 0.0,
-        "pos_rwd": 0.2,
-        "ori_rwd": 0.3,
+        "pos_rwd": 1.0,
+        "ori_rwd": 1.0,
     }
 
     def __init__(self, model_path, obsd_model_path=None, seed=None, **kwargs):
@@ -67,12 +73,12 @@ class FullBodyWalkEnvV0(BaseV0):
         self,
         obs_keys: list = DEFAULT_OBS_KEYS,
         weighted_reward_keys: dict = DEFAULT_RWD_KEYS_AND_WEIGHTS,
-        min_height= 0.7,
+        min_height= 0.8,
         max_rot=0.8,
         hip_period=100,
         reset_type="init",
         target_x_vel=0.0,
-        target_y_vel=1.2,
+        target_y_vel=1.25,
         target_rot=None,
         **kwargs,
     ):
@@ -113,22 +119,35 @@ class FullBodyWalkEnvV0(BaseV0):
         obs_dict["qvel"] = qvel * self.dt
         obs_dict["com_vel"] = np.array([self._get_com_velocity().copy()])
         obs_dict["com_pos"] = np.array([self._get_com().copy()])
-        obs_dict["human_torque"] = self.human_torque().copy()
+        obs_dict["feet_heights"] = self._get_feet_heights().copy()
+        obs_dict["height"] = np.array([self._get_height()]).copy()
+        obs_dict["feet_rel_positions"] = self._get_feet_relative_position().copy()
+        obs_dict["muscle_length"] = self.muscle_lengths()
+        obs_dict["muscle_velocity"] = self.muscle_velocities()
+        obs_dict["muscle_force"] = self.muscle_forces()
+        #obs_dict["human_torque"] = self.human_torque().copy()
         if sim.model.na > 0:
             obs_dict["act"] = sim.data.act[:].copy()
         self._guard_obs_reward(obs_dict, prefix="obs")
+
+        # print("qpos_wo_xy",qpos_wo_xy)
+        # print("qvel",qvel)
+        # print("com_vel", np.array([self._get_com_velocity().copy()]))
+        # print("human_torque", self.human_torque().copy())
+        # print("act", sim.data.act[:].copy())
         return obs_dict
 
      
 
     def get_reward_dict(self, obs_dict):
         self._update_bvh_ref()
-
+        vel_reward = self._get_vel_reward()
         joint_pos_rwd = self._get_all_joint_rwd()
         joint_vel_rwd = self._get_all_joint_vel_rwd()
         joint_rwd = (joint_pos_rwd+joint_vel_rwd)/2
         pos_rwd, ori_rwd = self._get_root_rwd()
         # print("===============================")
+        # print('vel reward: ', np.floor(np.array(vel_reward) * 100) / 100,  np.mean(vel_reward))
         # print('joint pos reward: ', np.floor(np.array(joint_pos_rwd) * 100) / 100,  np.mean(joint_pos_rwd))
         # print('joint vel reward: ', np.floor(np.array(joint_vel_rwd) * 100) / 100,  np.mean(joint_vel_rwd))
         # print('root pos reward: ', np.floor(np.array(pos_rwd) * 100) / 100,  np.mean(pos_rwd))
@@ -137,6 +156,7 @@ class FullBodyWalkEnvV0(BaseV0):
         rwd_dict = collections.OrderedDict(
             (
                 # Optional Keys
+                ("vel_reward", np.mean(vel_reward)),
                 ("joint_rwd", np.mean(joint_rwd)),
                 ("pos_rwd", np.mean(pos_rwd)),
                 ("ori_rwd", np.mean(ori_rwd)),
@@ -164,7 +184,6 @@ class FullBodyWalkEnvV0(BaseV0):
         return self.exp_of_squared(err, 0.01)
     
     def _get_all_joint_vel_rwd(self):
-        
         vdiff_deg = (self.sim.data.qvel[6:] - self.qvel_ref[6:]) * 180 / np.pi
         err = np.sqrt(np.mean(np.square(vdiff_deg)))
         return self.exp_of_squared(err, 0.001)
@@ -172,16 +191,19 @@ class FullBodyWalkEnvV0(BaseV0):
         pos_err = np.linalg.norm(self.sim.data.qpos[0:3] - self.qpos_ref[0:3]) * 100.0
         ori_err = self._quat_angle(self.sim.data.qpos[3:7], self.qpos_ref[3:7])
         pos_rwd = self.exp_of_squared(pos_err, 0.01)
-        ori_rwd = self.exp_of_squared(ori_err, 1.0)
+        ori_rwd = self.exp_of_squared(ori_err, 10.0)
         return pos_rwd, ori_rwd
     
-    def _get_vel_rwd(self):
-        # 获取 pelvis（或 root）的线速度
-        root_vel = self.sim.data.qvel[0:3]  # root 的线速度 [vx, vy, vz]
-        vx = root_vel[1]
-
-        # 奖励接近期望速度（高斯形式）
-        return np.exp(-2.0 * (vx - 0.8)**2)
+    def _get_vel_reward(self):
+        """
+        Gaussian that incentivizes a walking velocity. Going
+        over only achieves flat rewards.
+        """
+        vel = self._get_com_velocity()
+        # print('com vel:', np.floor(vel * 100) / 100)
+        # print('target vel:', self.target_y_vel)
+        # print('vel reward',np.exp(-np.square(self.target_y_vel - vel[1])) )
+        return np.exp(-np.square(self.target_y_vel - vel[1])) 
 
 
     def exp_of_squared(self, val, w):
@@ -239,7 +261,6 @@ class FullBodyWalkEnvV0(BaseV0):
         else:
             qpos, qvel = self.sim.model.key_qpos[0], self.sim.model.key_qvel[0]
         self.robot.sync_sims(self.sim, self.sim_obsd)
-      
         obs = super().reset(reset_qpos=qpos, reset_qvel=qvel, **kwargs)
         return obs
 
@@ -260,8 +281,8 @@ class FullBodyWalkEnvV0(BaseV0):
 
         if height < self.min_height:
             return 1
-        # if self._get_rot_condition():
-        #     return 1
+        if self._get_rot_condition():
+            return 1
         return 0
 
 
@@ -350,7 +371,7 @@ class FullBodyWalkEnvV0(BaseV0):
         # quaternion of root
         quat = self.sim.data.qpos[3:7].copy()
 
-        return [1 if np.abs((quat2mat(quat) @ [1, 0, 0])[0]) < self.max_rot else 0][0]
+        return [1 if np.abs((quat2mat(quat) @ [0, 1, 0])[0]) < self.max_rot else 0][0]
 
     def _get_com(self):
         """

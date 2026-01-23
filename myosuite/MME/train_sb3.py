@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--resume', type=bool, default=False,
                     help='whether to resume training')
-parser.add_argument('--resume_path', type=str, default="nn/human/myoLegWalk/sb3_3400000_steps.zip",
+parser.add_argument('--resume_path', type=str, default="nn/human/walk/sb3_2400000_steps.zip",
                     help='path to resume training')
 args = parser.parse_args()
 
