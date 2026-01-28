@@ -38,4 +38,4 @@ class Config:
         checkpoints:str = 'None'
         nn_dir: str = 'nn/human/walk'
         wandb_project:str = 'MME'
-        wandb_dir : str= 'walk'
+        wandb_dir : str= 'walk_test'
